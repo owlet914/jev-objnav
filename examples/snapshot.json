@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "demo-001",
+  "timestamp_ms": 0,
+  "target_object": "mug",
+  "map": {
+    "frame_id": "map",
+    "revision": 1,
+    "resolution_m": 0.05,
+    "explored_ratio": 0.42,
+    "occupancy_summary": "Kitchen and hallway explored; living room remains partly unknown"
+  },
+  "robot_pose": {"x": 1.2, "y": 2.3, "yaw": 0.0},
+  "rooms": [
+    {"id": "room-kitchen", "label": "kitchen", "confidence": 0.91, "visited": true},
+    {"id": "room-living", "label": "living room", "confidence": 0.84, "visited": false}
+  ],
+  "objects": [
+    {"id": "object-table", "label": "table", "room_id": "room-kitchen", "confidence": 0.88, "position": {"x": 3.2, "y": 2.9}},
+    {"id": "object-mug", "label": "mug", "room_id": "room-kitchen", "confidence": 0.64, "position": {"x": 3.6, "y": 3.1}}
+  ],
+  "semantic_matches": [
+    {"query": "mug", "entity_id": "object-mug", "score": 0.78, "source": "detector+image-text-match"},
+    {"query": "mug", "entity_id": "room-kitchen", "score": 0.71, "source": "room-object-prior"}
+  ],
+  "frontiers": [
+    {"id": "frontier-living", "room_id": "room-living", "information_gain": 0.8, "position": {"x": 4.5, "y": 1.3}}
+  ],
+  "candidates": [
+    {
+      "id": "approach-mug",
+      "kind": "approach_object",
+      "target_id": "object-mug",
+      "goal_pose": {"x": 3.2, "y": 2.8, "yaw": 0.4},
+      "path": {"reachable": true, "collision_free": true, "distance_m": 2.7},
+      "semantic_score": 0.78,
+      "information_gain": 0.2
+    },
+    {
+      "id": "explore-living",
+      "kind": "explore_frontier",
+      "target_id": "frontier-living",
+      "goal_pose": {"x": 4.1, "y": 1.4, "yaw": -0.2},
+      "path": {"reachable": true, "collision_free": true, "distance_m": 3.5},
+      "semantic_score": 0.3,
+      "information_gain": 0.8
+    }
+  ]
+}

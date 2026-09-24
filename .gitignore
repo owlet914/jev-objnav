@@ -1,0 +1,63 @@
+# Local source copy and handoff
+/ApexNav/
+/HANDOFF.md
+/.runtime/
+
+# Datasets, checkpoints, experiment output
+/hm3d*.zip
+**/data/
+**/.deps/
+**/videos/
+**/outputs/
+**/build/
+**/devel/
+**/lockfiles/
+*.pt
+*.pth
+*.onnx
+*.mp4
+*.bag
+*.log
+record.txt
+continue.txt
+/examples/ovon_episode_step.png
+/examples/ovon_scene_smoke.png
+/examples/decision_result.json
+/examples/jev_live_*.json
+/examples/ovon_*.json
+
+# Secrets and local environments
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+*.atsp
+*.tour
+*.par
+.vscode/
+# Platform and intermediate objects
+.DS_Store
+*.o
+*.so
+*.a
+
+# Local source retrieval metadata; README attribution to be completed before publishing
+/jev_obj/SOURCE_REVISION.txt
+/docs/upstream_tree.json
+/tools/fetch_upstream_source.py
+
+# Large archives and additional model formats
+*.zip
+*.tar
+*.tar.gz
+*.tar.xz
+*.7z
+*.safetensors
+*.ckpt

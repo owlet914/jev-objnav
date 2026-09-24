@@ -1,0 +1,17 @@
+[project]
+name = "jev-obj-bridge"
+version = "0.1.0"
+description = "Structured Jev object navigation decisions"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+jev-obj = "nav_jev_bridge.cli:main"
+jev-obj-server = "nav_jev_bridge.server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["nav_jev_bridge*"]
