@@ -16,6 +16,25 @@ void ExplorationFSM::init(ros::NodeHandle& nh)
   expl_manager_->initialize(nh);
   visualization_.reset(new PlanningVisualization(nh));
   fp_->vis_scale_ = expl_manager_->sdf_map_->getResolution() * FSMConstants::VIS_SCALE_FACTOR;
+  nh.param("jev/object_confirmation_required_hits",
+      fp_->object_confirmation_required_hits_, 2);
+  nh.param("jev/object_confirmation_max_attempts",
+      fp_->object_confirmation_max_attempts_, 4);
+  nh.param("jev/object_confirmation_cooldown_observations",
+      fp_->object_confirmation_cooldown_observations_, 12);
+  fp_->object_confirmation_required_hits_ =
+      std::max(1, fp_->object_confirmation_required_hits_);
+  fp_->object_confirmation_max_attempts_ = std::max(
+      fp_->object_confirmation_required_hits_, fp_->object_confirmation_max_attempts_);
+  fp_->object_confirmation_cooldown_observations_ =
+      std::max(1, fp_->object_confirmation_cooldown_observations_);
+  ros::param::set("/jev_obj/jev/confirmation/pending", false);
+  ros::param::set("/jev_obj/jev/confirmation/candidate_id", "");
+  ros::param::set("/jev_obj/jev/confirmation/target_id", "");
+  ros::param::set("/jev_obj/jev/confirmation/last_outcome", "idle");
+  ros::param::set("/jev_obj/jev/confirmation/blocked_candidate_id", "");
+  ros::param::set("/jev_obj/jev/confirmation/blocked_target_id", "");
+  ros::param::set("/jev_obj/jev/confirmation/blocked_until_observation_id", -1);
 
   state_ = ROS_STATE::INIT;
 
@@ -110,7 +129,9 @@ void ExplorationFSM::FSMCallback(const ros::TimerEvent& e)
         std_msgs::Int32 expl_state_msg;
         expl_state_msg.data = fd_->final_result_;
         expl_state_pub_.publish(expl_state_msg);
-        if (fd_->final_result_ == FINAL_RESULT::EXPLORE ||
+        if (fd_->final_result_ == FINAL_RESULT::JEV_RETRY)
+          transitState(ROS_STATE::PLAN_ACTION, "Jev retry");
+        else if (fd_->final_result_ == FINAL_RESULT::EXPLORE ||
             fd_->final_result_ == FINAL_RESULT::SEARCH_OBJECT)
           transitState(ROS_STATE::PUB_ACTION, "FSM");
         else
@@ -124,6 +145,11 @@ void ExplorationFSM::FSMCallback(const ros::TimerEvent& e)
       std_msgs::Int32 action_msg;
       action_msg.data = fd_->newest_action_;
       action_pub_.publish(action_msg);
+      ros::param::set("/jev_obj/jev/navigation/last_published_action", fd_->newest_action_);
+      ros::param::set("/jev_obj/jev/navigation/last_action_completed", false);
+      ros::param::set("/jev_obj/jev/navigation/last_action_origin",
+          fd_->init_action_count_ < 26 ? "initial_controller_scan" :
+          fd_->escape_stucking_flag_ ? "controller_stuck_escape" : "high_level_plan");
       transitState(ROS_STATE::WAIT_ACTION_FINISH, "FSM");
       break;
     }
@@ -157,24 +183,174 @@ int ExplorationFSM::callActionPlanner()
   double current_yaw = fd_->start_yaw_(0);
   fd_->last_start_pos_ = fd_->start_pt_;
 
+  auto publishConfirmationState = [&]() {
+    ros::param::set("/jev_obj/jev/confirmation/pending",
+        fd_->object_confirmation_pending_);
+    ros::param::set("/jev_obj/jev/confirmation/candidate_id",
+        fd_->object_confirmation_candidate_id_);
+    ros::param::set("/jev_obj/jev/confirmation/target_id",
+        fd_->object_confirmation_target_id_);
+    ros::param::set("/jev_obj/jev/confirmation/start_observation_id",
+        fd_->object_confirmation_start_observation_id_);
+    ros::param::set("/jev_obj/jev/confirmation/last_observation_id",
+        fd_->object_confirmation_last_observation_id_);
+    ros::param::set("/jev_obj/jev/confirmation/attempts",
+        fd_->object_confirmation_attempts_);
+    ros::param::set("/jev_obj/jev/confirmation/valid_hits",
+        fd_->object_confirmation_valid_hits_);
+    ros::param::set("/jev_obj/jev/confirmation/required_hits",
+        fp_->object_confirmation_required_hits_);
+    ros::param::set("/jev_obj/jev/confirmation/max_attempts",
+        fp_->object_confirmation_max_attempts_);
+  };
+
+  auto clearPendingConfirmation = [&]() {
+    fd_->object_confirmation_pending_ = false;
+    fd_->object_confirmation_candidate_id_.clear();
+    fd_->object_confirmation_target_id_.clear();
+    fd_->object_confirmation_start_observation_id_ = -1;
+    fd_->object_confirmation_last_observation_id_ = -1;
+    fd_->object_confirmation_attempts_ = 0;
+    fd_->object_confirmation_valid_hits_ = 0;
+    publishConfirmationState();
+  };
+
+  auto currentMappedObjectIsFreshTarget = [&](const std::string& target_id,
+                                               int observation_id) {
+    static const std::string prefix = "object-";
+    if (target_id.compare(0, prefix.size(), prefix) != 0)
+      return true;  // over-depth hypotheses have no stable ObjectMap2D ID
+    int object_id = -1;
+    try {
+      object_id = std::stoi(target_id.substr(prefix.size()));
+    }
+    catch (...) {
+      return false;
+    }
+    std::vector<ObjectEvidence> evidence;
+    expl_manager_->object_map2d_->getObjectEvidence(evidence);
+    for (const auto& object : evidence) {
+      if (object.id != object_id) continue;
+      return object.last_observation_id == static_cast<uint64_t>(observation_id) &&
+          object.computed_best_label == 0 && object.high_confidence_eligible;
+    }
+    return false;
+  };
+
+  auto scheduleConfirmationTurn = [&]() {
+    fd_->newest_action_ = fd_->object_confirmation_attempts_ % 2 == 0 ?
+        ACTION::TURN_LEFT : ACTION::TURN_RIGHT;
+    fd_->replan_flag_ = true;
+    publishConfirmationState();
+    ROS_WARN("[Jev] Object arrival requires fresh confirmation (%d/%d hits, %d/%d attempts)",
+        fd_->object_confirmation_valid_hits_, fp_->object_confirmation_required_hits_,
+        fd_->object_confirmation_attempts_, fp_->object_confirmation_max_attempts_);
+    return FINAL_RESULT::EXPLORE;
+  };
+
+  // Continue a post-arrival confirmation before asking Jev for another goal.
+  // Only fresh, synchronized detector/map evidence may convert an approach into
+  // STOP. Dataset goal coordinates and Habitat success state are never read.
+  if (expl_manager_->jevEnabled() && fd_->object_confirmation_pending_) {
+    int observation_id = -1, detection_observation_id = -1;
+    int target_match_count = 0, valid_mask_count = 0;
+    bool target_detection_available = false, detection_fallback = true;
+    ros::param::get("/jev_obj/jev/map/observation_id", observation_id);
+    ros::param::get("/jev_obj/jev/perception/detection_observation_id",
+        detection_observation_id);
+    ros::param::get("/jev_obj/jev/perception/target_detection_available",
+        target_detection_available);
+    ros::param::get("/jev_obj/jev/perception/object_detection_fallback",
+        detection_fallback);
+    ros::param::get("/jev_obj/jev/perception/target_match_count", target_match_count);
+    ros::param::get("/jev_obj/jev/perception/valid_mask_count", valid_mask_count);
+
+    ++fd_->object_confirmation_attempts_;
+    const bool fresh_observation = observation_id >
+        fd_->object_confirmation_last_observation_id_;
+    const bool synchronized_target = fresh_observation &&
+        detection_observation_id == observation_id && target_detection_available &&
+        !detection_fallback && target_match_count > 0 && valid_mask_count > 0;
+    if (fresh_observation)
+      fd_->object_confirmation_last_observation_id_ = observation_id;
+    if (synchronized_target && currentMappedObjectIsFreshTarget(
+            fd_->object_confirmation_target_id_, observation_id))
+      ++fd_->object_confirmation_valid_hits_;
+
+    if (fd_->object_confirmation_valid_hits_ >=
+        fp_->object_confirmation_required_hits_) {
+      ROS_WARN("[Jev] Object confirmed by %d fresh post-arrival observations; stopping",
+          fd_->object_confirmation_valid_hits_);
+      ros::param::set("/jev_obj/jev/confirmation/last_outcome", "confirmed");
+      ros::param::set("/jev_obj/jev/confirmation/blocked_candidate_id", "");
+      ros::param::set("/jev_obj/jev/confirmation/blocked_target_id", "");
+      ros::param::set("/jev_obj/jev/confirmation/blocked_until_observation_id", -1);
+      clearPendingConfirmation();
+      return FINAL_RESULT::REACH_OBJECT;
+    }
+
+    if (fd_->object_confirmation_attempts_ >=
+        fp_->object_confirmation_max_attempts_) {
+      const std::string rejected_candidate = fd_->object_confirmation_candidate_id_;
+      const std::string rejected_target = fd_->object_confirmation_target_id_;
+      ros::param::set("/jev_obj/jev/confirmation/last_outcome",
+          "rejected_missing_fresh_multiview_evidence");
+      ros::param::set("/jev_obj/jev/confirmation/blocked_candidate_id",
+          rejected_candidate);
+      ros::param::set("/jev_obj/jev/confirmation/blocked_target_id", rejected_target);
+      ros::param::set("/jev_obj/jev/confirmation/blocked_until_observation_id",
+          observation_id + fp_->object_confirmation_cooldown_observations_);
+      ROS_WARN("[Jev] Rejecting unconfirmed object candidate %s until observation %d",
+          rejected_candidate.c_str(),
+          observation_id + fp_->object_confirmation_cooldown_observations_);
+      clearPendingConfirmation();
+      fd_->final_result_ = FINAL_RESULT::EXPLORE;
+    }
+    else {
+      return scheduleConfirmationTurn();
+    }
+  }
+
+  auto beginObjectConfirmation = [&]() {
+    std::string candidate_id, target_id;
+    int observation_id = -1;
+    ros::param::get("/jev_obj/jev/accepted_candidate_id", candidate_id);
+    ros::param::get("/jev_obj/jev/accepted_target_id", target_id);
+    ros::param::get("/jev_obj/jev/map/observation_id", observation_id);
+    fd_->object_confirmation_pending_ = true;
+    fd_->object_confirmation_candidate_id_ = candidate_id;
+    fd_->object_confirmation_target_id_ = target_id;
+    fd_->object_confirmation_start_observation_id_ = observation_id;
+    fd_->object_confirmation_last_observation_id_ = observation_id;
+    fd_->object_confirmation_attempts_ = 0;
+    fd_->object_confirmation_valid_hits_ = 0;
+    ros::param::set("/jev_obj/jev/confirmation/last_outcome", "pending");
+    return scheduleConfirmationTurn();
+  };
+
   // Reach the object - check if close enough to target object
   if (fd_->final_result_ == FINAL_RESULT::SEARCH_OBJECT &&
       (current_pos - expl_manager_->ed_->next_pos_).norm() < reach_distance) {
+    if (expl_manager_->jevEnabled())
+      return beginObjectConfirmation();
     ROS_ERROR("Reach the object successfully!!!");
-    final_res = FINAL_RESULT::REACH_OBJECT;
-    return final_res;
+    return FINAL_RESULT::REACH_OBJECT;
   }
 
   /*******  Escape-from-stuck logic START *******/
   // Detect if robot is stuck and initiate escape sequence
-  int last_action = fd_->newest_action_;
+  const bool retrying_jev = fd_->final_result_ == FINAL_RESULT::JEV_RETRY;
+  if (retrying_jev)
+    fd_->escape_stucking_flag_ = false;
+  int last_action = retrying_jev ? -1 : fd_->newest_action_;
   if (!fd_->escape_stucking_flag_ && (current_pos - last_pos).norm() < stucking_distance &&
       last_action == ACTION::MOVE_FORWARD) {
     if (fd_->final_result_ == FINAL_RESULT::SEARCH_OBJECT &&
         (current_pos - expl_manager_->ed_->next_pos_).norm() < soft_reach_distance) {
+      if (expl_manager_->jevEnabled())
+        return beginObjectConfirmation();
       ROS_ERROR("Reach the object successfully!!!");
-      final_res = FINAL_RESULT::REACH_OBJECT;
-      return final_res;
+      return FINAL_RESULT::REACH_OBJECT;
     }
 
     bool past_stucking_flag = false;
@@ -261,12 +437,41 @@ int ExplorationFSM::callActionPlanner()
   else if (fd_->final_result_ == FINAL_RESULT::EXPLORE && !frontier_change_flag)
     fd_->replan_flag_ = false;
 
+  ros::param::set("/jev_obj/jev/navigation/frontier_changed", frontier_change_flag);
+  ros::param::set("/jev_obj/jev/navigation/replan_flag", fd_->replan_flag_);
+  ros::param::set("/jev_obj/jev/navigation/newest_action", fd_->newest_action_);
+  ros::param::set("/jev_obj/jev/navigation/init_scan_actions_completed", fd_->init_action_count_);
+  ros::param::set("/jev_obj/jev/navigation/stucking_action_count", fd_->stucking_action_count_);
+  ros::param::set("/jev_obj/jev/navigation/stucking_target_count", fd_->stucking_next_pos_count_);
+  ros::param::set("/jev_obj/jev/navigation/escape_active", fd_->escape_stucking_flag_);
+  ros::param::set("/jev_obj/jev/navigation/escape_action_index", fd_->escape_stucking_count_);
+  ros::param::set("/jev_obj/jev/navigation/forced_stuck_point_count",
+      static_cast<int>(fd_->stucking_points_.size()));
+  ros::param::set("/jev_obj/jev/navigation/reach_distance_m", reach_distance);
+  ros::param::set("/jev_obj/jev/navigation/soft_reach_distance_m", soft_reach_distance);
+  ros::param::set("/jev_obj/jev/navigation/current_path_points",
+      static_cast<int>(last_next_best_path.size()));
+  std::vector<double> traveled_path_flat;
+  traveled_path_flat.reserve(fd_->traveled_path_.size() * 2);
+  for (const auto& point : fd_->traveled_path_) {
+    traveled_path_flat.push_back(point.x());
+    traveled_path_flat.push_back(point.y());
+  }
+  ros::param::set("/jev_obj/jev/navigation/traveled_path_xy", traveled_path_flat);
+  ros::param::set("/jev_obj/jev/navigation/traveled_path_complete", true);
   expl_res = expl_manager_->planNextBestPoint(fd_->start_pt_, fd_->start_yaw_(0));
+
+  if (expl_res == EXPL_RESULT::JEV_DECISION_RETRY || expl_res == EXPL_RESULT::JEV_DECISION_FAILURE) {
+    std_msgs::Int32 expl_result_msg;
+    expl_result_msg.data = expl_res;
+    expl_result_pub_.publish(expl_result_msg);
+    return expl_res == EXPL_RESULT::JEV_DECISION_RETRY ? FINAL_RESULT::JEV_RETRY : FINAL_RESULT::JEV_FAILURE;
+  }
 
   if (expl_res != EXPL_RESULT::EXPLORATION) {
     fd_->replan_flag_ = true;
   }
-  if (expl_res == EXPL_RESULT::EXPLORATION && !fd_->replan_flag_) {
+  if (!expl_manager_->jevEnabled() && expl_res == EXPL_RESULT::EXPLORATION && !fd_->replan_flag_) {
     expl_manager_->ed_->next_best_path_ = last_next_best_path;
     expl_manager_->ed_->next_pos_ = last_next_pos;
     fd_->replan_flag_ = true;
@@ -277,6 +482,16 @@ int ExplorationFSM::callActionPlanner()
   std_msgs::Int32 expl_result_msg;
   expl_result_msg.data = expl_res;
   expl_result_pub_.publish(expl_result_msg);
+
+  if (expl_res == EXPL_RESULT::JEV_OBSERVE_LEFT ||
+      expl_res == EXPL_RESULT::JEV_OBSERVE_RIGHT) {
+    fd_->newest_action_ = expl_res == EXPL_RESULT::JEV_OBSERVE_LEFT ?
+        ACTION::TURN_LEFT : ACTION::TURN_RIGHT;
+    fd_->replan_flag_ = true;
+    ROS_INFO("[Jev] Execute in-place observation turn: %s",
+        expl_res == EXPL_RESULT::JEV_OBSERVE_LEFT ? "left" : "right");
+    return FINAL_RESULT::EXPLORE;
+  }
 
   // Determine current high-level state based on exploration results
   if (expl_res == EXPL_RESULT::EXPLORATION)
@@ -328,7 +543,7 @@ int ExplorationFSM::callActionPlanner()
   }
 
   // Track consecutive stuck actions globally
-  if ((current_pos - last_pos).norm() < stucking_distance) {
+  if (!retrying_jev && (current_pos - last_pos).norm() < stucking_distance) {
     fd_->stucking_action_count_++;
     ROS_ERROR_COND(fd_->stucking_action_count_ > 15, "Stucking action count = %d",
         fd_->stucking_action_count_);
@@ -590,8 +805,12 @@ bool ExplorationFSM::updateFrontierAndObject()
   change_flag = frt_map->isAnyFrontierChanged();
   frt_map->searchFrontiers();
   change_flag |= frt_map->dormantSeenFrontiers(sensor_pos, fd_->odom_yaw_);
-  frt_map->getFrontiers(ed->frontiers_, ed->frontier_averages_);
-  frt_map->getDormantFrontiers(ed->dormant_frontiers_, ed->dormant_frontier_averages_);
+  frt_map->getFrontiers(ed->frontiers_, ed->frontier_averages_, &ed->frontier_ids_,
+      &ed->frontier_dormancy_reasons_, &ed->frontier_parent_ids_,
+      &ed->frontier_lineage_events_);
+  frt_map->getDormantFrontiers(ed->dormant_frontiers_, ed->dormant_frontier_averages_,
+      &ed->dormant_frontier_ids_, &ed->dormant_frontier_dormancy_reasons_,
+      &ed->dormant_frontier_parent_ids_, &ed->dormant_frontier_lineage_events_);
   obj_map->getObjects(ed->objects_, ed->object_averages_, ed->object_labels_);
 
   return change_flag;
@@ -600,8 +819,10 @@ bool ExplorationFSM::updateFrontierAndObject()
 // Receive Habitat state messages
 void ExplorationFSM::habitatStateCallback(const std_msgs::Int32ConstPtr& msg)
 {
-  if (msg->data == HABITAT_STATE::ACTION_FINISH && state_ == ROS_STATE::WAIT_ACTION_FINISH)
+  if (msg->data == HABITAT_STATE::ACTION_FINISH && state_ == ROS_STATE::WAIT_ACTION_FINISH) {
+    ros::param::set("/jev_obj/jev/navigation/last_action_completed", true);
     transitState(PLAN_ACTION, "Habitat Finish Action");
+  }
   if (msg->data == HABITAT_STATE::EPISODE_FINISH)
     init(nh_);
   return;

@@ -96,24 +96,27 @@ void MapROS::init()
   value_map_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/grid_map/value_map", 10);
   confidence_map_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/grid_map/confidence_map", 10);
 
-  // Setup subscribers for object detection and ITM scores
+  // Object messages are associated by episode/observation ID in the callback below.
   detected_object_cloud_sub_ = node_.subscribe(
       "/detector/clouds_with_scores", 10, &MapROS::detectedObjectCloudCallback, this);
-  itm_score_sub_ = node_.subscribe("/blip2/cosine_score", 10, &MapROS::itmScoreCallback, this);
 
   // Setup synchronized subscribers for depth image and pose data
   depth_sub_.reset(
       new message_filters::Subscriber<sensor_msgs::Image>(node_, "/map_ros/depth", 20));
   pose_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(node_, "/map_ros/pose", 20));
+  semantic_sub_.reset(new message_filters::Subscriber<plan_env::SemanticObservation>(
+      node_, "/blip2/semantic_observation", 20));
 
   sync_image_pose_.reset(new message_filters::Synchronizer<MapROS::SyncPolicyImagePose>(
-      MapROS::SyncPolicyImagePose(20), *depth_sub_, *pose_sub_));
+      MapROS::SyncPolicyImagePose(20), *depth_sub_, *pose_sub_, *semantic_sub_));
   sync_image_pose_->setMaxIntervalDuration(ros::Duration(0.01));  // Set maximum temporal offset
-  sync_image_pose_->registerCallback(boost::bind(&MapROS::depthPoseCallback, this, _1, _2));
+  sync_image_pose_->registerCallback(boost::bind(&MapROS::depthPoseCallback, this, _1, _2, _3));
 
   // Initialize object tracking variables
   continue_over_depth_count_ = -1;
   itm_score_ = -1.0;
+  itm_valid_ = false;
+  itm_fallback_ = false;
   map_start_time_ = ros::Time::now();
 }
 
@@ -135,12 +138,38 @@ void MapROS::visCallback(const ros::TimerEvent& e)
   vis_timer_.start();
 }
 
-void MapROS::itmScoreCallback(const std_msgs::Float64ConstPtr& msg)
+void MapROS::detectedObjectCloudCallback(const plan_env::MultipleMasksWithConfidenceConstPtr& msg)
 {
-  itm_score_ = msg->data;
+  std::string expected_episode_id;
+  if (!ros::param::get("/jev_obj/jev/episode_id", expected_episode_id) ||
+      expected_episode_id.empty() || msg->episode_id != expected_episode_id) {
+    ROS_WARN("Drop detection from non-current episode %s; expected %s",
+        msg->episode_id.c_str(), expected_episode_id.c_str());
+    return;
+  }
+  if (current_episode_id_ != expected_episode_id) {
+    map_->resetEpisode();
+    current_episode_id_ = expected_episode_id;
+    current_observation_id_ = 0;
+    map_revision_ = 0;
+    pending_detections_.clear();
+  }
+  if (msg->episode_id != current_episode_id_ || msg->observation_id != current_observation_id_) {
+    if (msg->episode_id == current_episode_id_ && msg->observation_id > current_observation_id_) {
+      pending_detections_[msg->observation_id] = msg;
+      while (pending_detections_.size() > 8) pending_detections_.erase(pending_detections_.begin());
+    }
+    else {
+      ROS_WARN("Drop stale detection episode=%s observation=%lu; current=%s/%lu",
+          msg->episode_id.c_str(), static_cast<unsigned long>(msg->observation_id),
+          current_episode_id_.c_str(), static_cast<unsigned long>(current_observation_id_));
+    }
+    return;
+  }
+  processDetectedObjectCloud(msg);
 }
 
-void MapROS::detectedObjectCloudCallback(const plan_env::MultipleMasksWithConfidenceConstPtr& msg)
+void MapROS::processDetectedObjectCloud(const plan_env::MultipleMasksWithConfidenceConstPtr& msg)
 {
   // Validate message structure consistency
   if (!(msg->confidence_scores.size() == msg->point_clouds.size() &&
@@ -252,14 +281,23 @@ void MapROS::detectedObjectCloudCallback(const plan_env::MultipleMasksWithConfid
   // Update object map with processed detection results
   *map_->object_map2d_->all_object_clouds_ = *filtered_all_object_cloud;
   vector<int> detected_object_cluster_ids;
+  map_->object_map2d_->setObservationContext(current_episode_id_, current_observation_id_,
+      static_cast<double>(current_observation_stamp_.toNSec() / 1000000));
   map_->inputObjectCloud2D(detected_objects, detected_object_cluster_ids);
+  ros::param::set("/jev_obj/jev/perception/successful_object_ingestion_count",
+      static_cast<int>(detected_object_cluster_ids.size()));
 
   // Optional: Log detected object IDs for debugging
   // for (auto object_id : detected_object_cluster_ids)
   //   ROS_INFO("Detected object id is %d", object_id);
 
   // Extract observation data from depth sensor for objects not detected by vision
-  getObservationObjectsCloud(detected_object_cluster_ids);
+  if (itm_valid_ && !itm_fallback_)
+    getObservationObjectsCloud(detected_object_cluster_ids,
+        std::vector<bool>(msg->label_detection_valid.begin(), msg->label_detection_valid.end()));
+  else
+    ROS_INFO("Skip object negative evidence for observation %lu: ITM invalid/fallback",
+        static_cast<unsigned long>(current_observation_id_));
 
   double object_map_process_time = (ros::Time::now() - t1).toSec();
   ROS_INFO_THROTTLE(
@@ -282,9 +320,35 @@ void MapROS::updateESDFCallback(const ros::TimerEvent& /*event*/)
   esdf_timer_.start();
 }
 
-void MapROS::depthPoseCallback(
-    const sensor_msgs::ImageConstPtr& img, const nav_msgs::OdometryConstPtr& pose)
+void MapROS::depthPoseCallback(const sensor_msgs::ImageConstPtr& img,
+    const nav_msgs::OdometryConstPtr& pose,
+    const plan_env::SemanticObservationConstPtr& semantic)
 {
+  std::string expected_episode_id;
+  if (!ros::param::get("/jev_obj/jev/episode_id", expected_episode_id) ||
+      expected_episode_id.empty() || semantic->episode_id != expected_episode_id) {
+    ROS_WARN("Drop semantic observation from non-current episode %s; expected %s",
+        semantic->episode_id.c_str(), expected_episode_id.c_str());
+    return;
+  }
+  if (semantic->episode_id == current_episode_id_ &&
+      semantic->observation_id <= current_observation_id_)
+    return;
+  if (semantic->episode_id != current_episode_id_) {
+    map_->resetEpisode();
+    current_episode_id_ = expected_episode_id;
+    current_observation_id_ = 0;
+    map_revision_ = 0;
+    pending_detections_.clear();
+  }
+  current_observation_id_ = semantic->observation_id;
+  current_observation_stamp_ = semantic->header.stamp;
+  itm_score_ = semantic->raw_score;
+  itm_valid_ = semantic->valid;
+  itm_fallback_ = semantic->fallback;
+  itm_backend_ = semantic->backend;
+  itm_query_text_ = semantic->query_text;
+  itm_score_type_ = semantic->score_type;
   // Extract camera pose from odometry message
   camera_pos_(0) = pose->pose.pose.position.x;
   camera_pos_(1) = pose->pose.pose.position.y;
@@ -326,7 +390,7 @@ void MapROS::depthPoseCallback(
 
   t1 = ros::Time::now();
   // Update semantic value map if ITM score is available
-  if (itm_score_ != -1.0)
+  if (itm_valid_ && !itm_fallback_ && std::isfinite(itm_score_))
     map_->value_map_->updateValueMap(camera_pos, camera_yaw, free_grids, itm_score_);
   double value_map_time = (ros::Time::now() - t1).toSec();
   ROS_INFO_THROTTLE(50.0, "[Calculating Time] Value Map process time = %.3f s", value_map_time);
@@ -336,6 +400,21 @@ void MapROS::depthPoseCallback(
     map_->clearAndInflateLocalMap();
     esdf_need_update_ = true;
     local_updated_ = false;
+  }
+  ++map_revision_;
+  ros::param::set("/jev_obj/jev/map/episode_id", current_episode_id_);
+  ros::param::set("/jev_obj/jev/map/observation_id", static_cast<int>(current_observation_id_));
+  ros::param::set("/jev_obj/jev/map/revision", static_cast<int>(map_revision_));
+  ros::param::set("/jev_obj/jev/map/observation_timestamp_ms",
+      static_cast<double>(current_observation_stamp_.toNSec() / 1000000));
+  ros::param::set("/jev_obj/jev/map/itm_valid", itm_valid_ && !itm_fallback_);
+  ros::param::set("/jev_obj/jev/map/itm_query_text", itm_query_text_);
+  ros::param::set("/jev_obj/jev/map/itm_score_type", itm_score_type_);
+  auto pending = pending_detections_.find(current_observation_id_);
+  if (pending != pending_detections_.end()) {
+    auto message = pending->second;
+    pending_detections_.erase(pending);
+    processDetectedObjectCloud(message);
   }
 }
 
@@ -391,7 +470,8 @@ void MapROS::processDepthImage()
  *
  * @param filter_object_ids List of already detected object cluster IDs to filter out
  */
-void MapROS::getObservationObjectsCloud(const std::vector<int>& filter_object_ids)
+void MapROS::getObservationObjectsCloud(const std::vector<int>& filter_object_ids,
+    const std::vector<bool>& label_detection_valid)
 {
   // Downsample depth cloud for efficient processing
   PointCloud3D::Ptr filtered_depth_cloud(new PointCloud3D());
@@ -428,7 +508,9 @@ void MapROS::getObservationObjectsCloud(const std::vector<int>& filter_object_id
   }
 
   // Update object map with observation data (using max of 0 and ITM score)
-  map_->object_map2d_->inputObservationObjectsCloud(observation_clouds, max(0.0, itm_score_));
+  if (itm_valid_ && !itm_fallback_)
+    map_->object_map2d_->inputObservationObjectsCloud(
+        observation_clouds, itm_score_, label_detection_valid);
 }
 
 /**

@@ -1,0 +1,5663 @@
+{
+  "evidence_type": "compiled C++ fixture -> production HTTP handler -> recording provider",
+  "limitations": [
+    "recording provider is deterministic and is not Jev",
+    "fixture validates serialization and transport, not ROS timing or closed-loop navigation"
+  ],
+  "snapshot_sha256": "68e019a534fb99d540811a0b2834fdfa5cdd0bb5497bf15f6177cef9c7c7fc12",
+  "input_counts": {
+    "active_frontiers": {
+      "exported": 8,
+      "omitted": 0,
+      "total": 8
+    },
+    "candidate_evidence": {
+      "exported": 15,
+      "omitted": 0,
+      "total": 15
+    },
+    "candidates": {
+      "exported": 1,
+      "omitted": 0,
+      "total": 1
+    },
+    "dormant_frontiers": {
+      "exported": 7,
+      "omitted": 0,
+      "total": 7
+    },
+    "objects": {
+      "exported": 70,
+      "omitted": 0,
+      "total": 70
+    }
+  },
+  "decision": {
+    "status": "GOAL",
+    "candidate_id": "frontier-0-goal",
+    "kind": "explore_frontier",
+    "target_id": "frontier-0",
+    "episode_id": "cpp-fixture",
+    "map_revision": 7,
+    "frame_id": "world",
+    "goal_pose": {
+      "x": 1.0,
+      "y": 2.0,
+      "yaw": 1.0
+    },
+    "confidence": 1.0,
+    "probability": 1.0
+  },
+  "model_request": {
+    "model": "typesafe/jev-1.13",
+    "state": {
+      "candidate_evidence": [
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-0"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-1"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-2"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-3"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-4"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-5"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-6"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "active_frontier_policy",
+          "target_entity_id": "frontier-7"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-8"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-9"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-10"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-11"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-12"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-13"
+        },
+        {
+          "search_result": "reach_end",
+          "stage": "dormant_frontier_policy",
+          "target_entity_id": "frontier-14"
+        }
+      ],
+      "candidates": [
+        {
+          "goal_pose": {
+            "x": 1.0,
+            "y": 2.0,
+            "yaw": 1.0
+          },
+          "id": "frontier-0-goal",
+          "information_gain": null,
+          "kind": "explore_frontier",
+          "path": {
+            "collision_free": true,
+            "distance_m": 2.3,
+            "reachable": true
+          },
+          "semantic_score": -0.17,
+          "target_id": "frontier-0"
+        }
+      ],
+      "coverage": {
+        "entity_counts": {
+          "active_frontiers": {
+            "exported": 8,
+            "omitted": 0,
+            "total": 8
+          },
+          "candidate_evidence": {
+            "exported": 15,
+            "omitted": 0,
+            "total": 15
+          },
+          "candidates": {
+            "exported": 1,
+            "omitted": 0,
+            "total": 1
+          },
+          "dormant_frontiers": {
+            "exported": 7,
+            "omitted": 0,
+            "total": 7
+          },
+          "objects": {
+            "exported": 70,
+            "omitted": 0,
+            "total": 70
+          }
+        },
+        "high_level_evidence_complete": true,
+        "limitations": [
+          "entire native map is not exported; exact cells are included for every decision query",
+          "extreme paths are audit evidence only because occupancy checking is bypassed"
+        ],
+        "raw_map_complete": false,
+        "required_feature_status": {
+          "entire_raw_map": "not_exported",
+          "entity_enumeration": "complete",
+          "extreme_search_evidence": "complete_but_not_selectable_for_safety",
+          "frontier_path_graphs": "complete_for_normally_reachable_frontiers",
+          "normal_path_searches": "complete",
+          "raw_decision_neighborhoods": "complete"
+        },
+        "scope": "all high-level entities, policy features, branch searches and safe actions"
+      },
+      "episode_id": "cpp-fixture",
+      "frontiers": [
+        {
+          "id": "frontier-0",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 1.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-1",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 2.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-2",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 3.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-3",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 4.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-4",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 5.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-5",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 6.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-6",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 7.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-7",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 8.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "active"
+        },
+        {
+          "id": "frontier-8",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 9.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        },
+        {
+          "id": "frontier-9",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 10.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        },
+        {
+          "id": "frontier-10",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 11.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        },
+        {
+          "id": "frontier-11",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 12.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        },
+        {
+          "id": "frontier-12",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 13.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        },
+        {
+          "id": "frontier-13",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 14.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        },
+        {
+          "id": "frontier-14",
+          "information_gain": null,
+          "information_gain_status": "unknown_not_measured",
+          "path": {
+            "distance_m": 2.3,
+            "points": [],
+            "reachable": true,
+            "safety_mode": "normal"
+          },
+          "planning_status": "reach_end",
+          "position": {
+            "x": 15.0,
+            "y": 2.0
+          },
+          "semantic_features": {
+            "raw_neighborhood": [
+              {
+                "dx": -2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": -1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 0,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 1,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": -1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 0,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 1,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              },
+              {
+                "dx": 2,
+                "dy": 2,
+                "fusion_weight": 1.0,
+                "in_map": true,
+                "inflated": 0,
+                "occupancy": 0,
+                "semantic_raw": 0.0
+              }
+            ]
+          },
+          "state": "dormant"
+        }
+      ],
+      "map": {
+        "decision_query_evidence": {
+          "raw_semantic_values_preserved": true
+        },
+        "frame_id": "world",
+        "observation_id": 7,
+        "revision": 7
+      },
+      "navigation_history": {},
+      "objects": [
+        {
+          "id": "object-0",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-1",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.1,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-2",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.2,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-3",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.30000000000000004,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-4",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.4,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-5",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-6",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.6000000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-7",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.7000000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-8",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.8,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-9",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 0.9,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-10",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-11",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.1,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-12",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.2000000000000002,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-13",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.3,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-14",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.4000000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-15",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-16",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.6,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-17",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.7000000000000002,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-18",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.8,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-19",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 1.9000000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-20",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-21",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.1,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-22",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.2,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-23",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.3000000000000003,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-24",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.4000000000000004,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-25",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-26",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.6,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-27",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.7,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-28",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.8000000000000003,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-29",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 2.9000000000000004,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-30",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-31",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.1,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-32",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.2,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-33",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.3000000000000003,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-34",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.4000000000000004,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-35",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-36",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.6,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-37",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.7,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-38",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.8000000000000003,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-39",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 3.9000000000000004,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-40",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-41",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.1000000000000005,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-42",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.2,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-43",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.3,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-44",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.4,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-45",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-46",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.6000000000000005,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-47",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.7,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-48",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.800000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-49",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 4.9,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-50",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-51",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.1000000000000005,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-52",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.2,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-53",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.300000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-54",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.4,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-55",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-56",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.6000000000000005,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-57",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.7,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-58",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.800000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-59",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 5.9,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-60",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.0,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-61",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.1000000000000005,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-62",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.2,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-63",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.300000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-64",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.4,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-65",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.5,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-66",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.6000000000000005,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-67",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.7,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-68",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.800000000000001,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        },
+        {
+          "id": "object-69",
+          "normal_path_search": {
+            "approach_point": null,
+            "attempts": [],
+            "distance_m": null,
+            "final_reason": "synthetic_fixture",
+            "geometry_available": true,
+            "nearest_object_point": null,
+            "path_points": []
+          },
+          "position": {
+            "x": 6.9,
+            "y": 1.0
+          },
+          "selection": {
+            "relaxed_eligible": false
+          },
+          "target_confidence": 0.0,
+          "target_observations": 1
+        }
+      ],
+      "observation_actions": [],
+      "observation_id": 7,
+      "original_policy": {
+        "active_frontier_path_graph": {
+          "cost_matrix": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ],
+          "node_ids": [
+            "robot",
+            "frontier-0",
+            "frontier-1",
+            "frontier-2",
+            "frontier-3",
+            "frontier-4",
+            "frontier-5",
+            "frontier-6",
+            "frontier-7"
+          ]
+        },
+        "dormant_frontier_path_graph": {
+          "cost_matrix": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ],
+          "node_ids": [
+            "robot",
+            "frontier-8",
+            "frontier-9",
+            "frontier-10",
+            "frontier-11",
+            "frontier-12",
+            "frontier-13",
+            "frontier-14"
+          ]
+        }
+      },
+      "perception": {
+        "image_text_match": {},
+        "object_detection": {}
+      },
+      "request_id": "cpp-fixture:obs-7:req-1",
+      "robot_pose": {
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 3.1
+      },
+      "rooms": [],
+      "schema_version": "2.0",
+      "search_branches": [
+        {
+          "entity_results": [],
+          "name": "high_confidence_object_normal",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [],
+          "name": "current_over_depth_object",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [],
+          "name": "suspicious_object_normal",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [],
+          "name": "active_frontier_policy",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [],
+          "name": "dormant_frontier_policy",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [],
+          "name": "original_object_extreme",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [],
+          "name": "cached_over_depth_extreme",
+          "stage_condition": "fixture"
+        },
+        {
+          "entity_results": [
+            {
+              "entity_ids": [],
+              "geometry_mode": "merged_all_cells_low_confidence_fallback",
+              "search": {
+                "approach_point": null,
+                "attempts": [],
+                "distance_m": null,
+                "final_reason": "synthetic_fixture",
+                "geometry_available": true,
+                "nearest_object_point": null,
+                "path_points": []
+              },
+              "selectable": false
+            }
+          ],
+          "name": "relaxed_all_cells_extreme",
+          "stage_condition": "fixture"
+        }
+      ],
+      "semantic_matches": [],
+      "target_object": "mug",
+      "timestamp_ms": 1
+    },
+    "questions": {
+      "next_goal": {
+        "type": "choice",
+        "instructions": "Find the object named in state.target_object. Choose one reachable candidate ID. Approach an object only when its detection evidence supports the target. When reliable target evidence is absent, choose a safe reachable frontier that can acquire new information or an in-place observation rotation; weak target evidence is expected during exploration and is not a reason to wait. Compare original-policy stage conditions, semantic evidence, frontier state, path-graph costs, information-gain provenance and path cost. Never invent a position or a candidate. Check validity, observation_id, backend and fallback status before treating any perception score as measured evidence. Missing evidence is not negative evidence.",
+        "criteria": {
+          "frontier-0-goal": "explore_frontier target=frontier-0; distance_m=2.3; information_gain=None; semantic_value=-0.17; semantic_confidence=unknown; cluster_cells=unknown; planning_status=reach_end"
+        }
+      }
+    }
+  }
+}

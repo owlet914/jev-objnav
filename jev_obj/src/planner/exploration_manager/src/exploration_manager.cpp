@@ -46,15 +46,23 @@ void ExplorationManager::initialize(ros::NodeHandle& nh)
   nh.param("exploration/tsp_dir", ep_->tsp_dir_, string("null"));
   nh.param("jev/enabled", jev_enabled_, false);
   nh.param("jev/url", jev_url_, std::string("http://127.0.0.1:8765/decide"));
-  nh.param("jev/timeout_ms", jev_timeout_ms_, 5000);
-  nh.param("jev/max_frontiers", jev_max_frontiers_, 6);
-  nh.param("jev/max_objects", jev_max_objects_, 3);
+  nh.param("jev/state_profile", jev_state_profile_, std::string("full"));
+  nh.param("jev/timeout_ms", jev_timeout_ms_, 45000);
+  double region_tile_size_m = 3.0;
+  nh.param("jev/region_tile_size_m", region_tile_size_m, 3.0);
+  double region_localization_tolerance_m = 0.35;
+  nh.param("jev/region_localization_tolerance_m", region_localization_tolerance_m, 0.35);
   nh.param("map_ros/frame_id", jev_frame_id_, std::string("world"));
-  jev_timeout_ms_ = std::max(100, std::min(jev_timeout_ms_, 10000));
-  jev_max_frontiers_ = std::max(0, std::min(jev_max_frontiers_, 20));
-  jev_max_objects_ = std::max(0, std::min(jev_max_objects_, 10));
+  jev_timeout_ms_ = std::max(1000, std::min(jev_timeout_ms_, 120000));
+  region_graph_.reset(new RegionGraph2D(
+      region_tile_size_m, region_localization_tolerance_m));
   jev_session_id_ = std::to_string(ros::WallTime::now().toNSec());
   jev_revision_ = 0;
+  jev_request_sequence_ = 0;
+  jev_consecutive_failures_ = 0;
+  jev_episode_id_.clear();
+  jev_next_retry_at_ = ros::WallTime();
+  jev_cached_over_depth_cloud_.reset(new pcl::PointCloud<pcl::PointXYZ>());
 
   // Get map parameters for ray casting initialization
   double resolution = sdf_map_->getResolution();
@@ -85,11 +93,55 @@ int ExplorationManager::planNextBestPoint(const Vector3d& pos, const double& yaw
   // Clear previous planning results
   ed_->tsp_tour_.clear();
   ed_->next_best_path_.clear();
+  std::string episode_id;
+  if (!ros::param::get("/jev_obj/jev/episode_id", episode_id) || episode_id.empty())
+    episode_id = jev_session_id_;
+  if (jev_episode_id_ != episode_id) {
+    jev_episode_id_ = episode_id;
+    jev_consecutive_failures_ = 0;
+    jev_request_sequence_ = 0;
+    jev_next_retry_at_ = ros::WallTime();
+    jev_last_candidate_id_.clear();
+    jev_last_entity_id_.clear();
+    jev_repeated_candidate_count_ = 0;
+    jev_last_goal_initial_distance_ = 0.0;
+    jev_last_goal_previous_distance_ = 0.0;
+    jev_last_goal_initial_step_ = 0;
+    jev_has_last_goal_ = false;
+    jev_cached_over_depth_cloud_.reset(new pcl::PointCloud<pcl::PointXYZ>());
+    jev_cached_over_depth_observation_id_ = 0;
+    jev_selected_entity_history_.clear();
+    jev_recent_perception_observation_ids_.clear();
+    jev_recent_itm_scores_.clear();
+    jev_recent_itm_validity_.clear();
+    jev_recent_target_match_counts_.clear();
+    jev_recent_valid_mask_counts_.clear();
+    if (region_graph_) region_graph_->resetEpisode();
+    jev_region_grid_ = RegionGridSnapshot();
+  }
   if (jev_enabled_) {
+    if (ros::WallTime::now() < jev_next_retry_at_)
+      return JEV_DECISION_RETRY;
+
     int jev_result = EXPLORATION;
-    if (planWithJev(pos, yaw, jev_result))
+    ros::param::set("/jev_obj/jev/last_error", "LOCAL_INPUT_OR_CONFIGURATION_FAILURE");
+    const JEV_PLAN_STATUS jev_status = planWithJev(pos, yaw, jev_result);
+    if (jev_status == JEV_PLAN_SUCCESS) {
+      jev_consecutive_failures_ = 0;
       return jev_result;
-    ROS_WARN_THROTTLE(2.0, "[Jev] No accepted decision; using original Jev Obj policy");
+    }
+    ++jev_consecutive_failures_;
+    ROS_WARN("[Jev] Decision attempt failed (%d/15, class=%s) for episode %s",
+        jev_consecutive_failures_,
+        jev_status == JEV_PLAN_NONRETRYABLE_FAILURE ? "local_or_validation" : "retryable",
+        jev_episode_id_.c_str());
+    if (jev_consecutive_failures_ >= 15) {
+      ros::param::set("/jev_obj/jev/last_error", "JEV_RETRY_LIMIT_15");
+      ROS_ERROR("[Jev] Episode failed after 15 consecutive unsuccessful decisions");
+      return JEV_DECISION_FAILURE;
+    }
+    jev_next_retry_at_ = ros::WallTime::now() + ros::WallDuration(0.5);
+    return JEV_DECISION_RETRY;
   }
   vector<pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>> object_clouds;
   sdf_map_->object_map2d_->getTopConfidenceObjectCloud(object_clouds);
@@ -158,13 +210,12 @@ int ExplorationManager::planNextBestPoint(const Vector3d& pos, const double& yaw
       }
 
       // Try cached over-depth objects as final option
-      static auto last_over_depth_object_cloud = object_map2d_->over_depth_object_cloud_;
       if (!object_map2d_->over_depth_object_cloud_->points.empty())
-        last_over_depth_object_cloud = object_map2d_->over_depth_object_cloud_;
+        *jev_cached_over_depth_cloud_ = *object_map2d_->over_depth_object_cloud_;
 
-      if (!last_over_depth_object_cloud->points.empty() &&
+      if (!jev_cached_over_depth_cloud_->points.empty() &&
           searchObjectPathExtreme(
-              pos, last_over_depth_object_cloud, ed_->next_pos_, ed_->next_best_path_)) {
+              pos, jev_cached_over_depth_cloud_, ed_->next_pos_, ed_->next_best_path_)) {
         return SEARCH_EXTREME;
       }
     }
@@ -245,7 +296,8 @@ void ExplorationManager::hybridExplorePolicy(Vector2d cur_pos, vector<Vector2d> 
     for (auto sem_frontier : sem_frontiers) {
       double auto_max_to_mean_threshold =
           max(max_to_mean_threshold, ep_->max_to_mean_percentage_ * max_to_mean);
-      if (sem_frontier.semantic_value / mean < auto_max_to_mean_threshold)
+      if (std::abs(mean) <= 1e-12 ||
+          sem_frontier.semantic_value / mean < auto_max_to_mean_threshold)
         break;
       high_sem_frontiers.push_back(sem_frontier.position);
     }
@@ -372,11 +424,29 @@ void ExplorationManager::findTSPTourPolicy(Vector2d cur_pos, vector<Vector2d> fr
   }
 }
 
-double ExplorationManager::computePathCost(const Vector2d& pos1, const Vector2d& pos2)
+double ExplorationManager::computePathCost(
+    const Vector2d& pos1, const Vector2d& pos2, PathCostEvidence* evidence)
 {
   path_finder_->reset();
-  if (path_finder_->astarSearch(pos1, pos2, 0.25, 0.002) == Astar2D::REACH_END)
-    return Astar2D::pathLength(path_finder_->getPath());
+  const int search_result = path_finder_->astarSearch(pos1, pos2, 0.25, 0.002);
+  if (search_result == Astar2D::REACH_END) {
+    const double cost = Astar2D::pathLength(path_finder_->getPath());
+    if (evidence) {
+      evidence->physical_cost_m = cost;
+      evidence->solver_cost = cost;
+      evidence->reachable = true;
+      evidence->search_result = search_result;
+      evidence->solver_penalty = false;
+    }
+    return cost;
+  }
+  if (evidence) {
+    evidence->physical_cost_m = 0.0;
+    evidence->solver_cost = 10000.0;
+    evidence->reachable = false;
+    evidence->search_result = search_result;
+    evidence->solver_penalty = true;
+  }
   return 10000.0;
 }
 
@@ -523,11 +593,19 @@ Vector2d ExplorationManager::findNearestObjectPoint(
 bool ExplorationManager::trySearchObjectPathWithDistance(const Vector2d& start2d,
     const Vector2d& object_pose, double distance, double max_search_time,
     Eigen::Vector2d& refined_pos, std::vector<Eigen::Vector2d>& refined_path,
-    const std::string& debug_msg)
+    const std::string& debug_msg, PathAttemptEvidence* attempt)
 {
   path_finder_->reset();
-  if (path_finder_->astarSearch(start2d, object_pose, distance, max_search_time) ==
-      Astar2D::REACH_END) {
+  const int first_result = path_finder_->astarSearch(start2d, object_pose, distance, max_search_time);
+  if (attempt) {
+    attempt->success_distance = distance;
+    attempt->max_search_time_s = max_search_time;
+    attempt->safety_mode = Astar2D::SAFETY_MODE::NORMAL;
+    attempt->search_result = first_result;
+    attempt->early_terminate_cost = path_finder_->getEarlyTerminateCost();
+    attempt->reached = false;
+  }
+  if (first_result == Astar2D::REACH_END) {
     std::vector<Eigen::Vector2d> path = path_finder_->getPath();
     Vector2d tmp_pos(-1000.0, -1000.0);
 
@@ -543,12 +621,18 @@ bool ExplorationManager::trySearchObjectPathWithDistance(const Vector2d& start2d
 
     // Search path to the valid position
     path_finder_->reset();
-    if (path_finder_->astarSearch(start2d, tmp_pos, 0.2, max_search_time) == Astar2D::REACH_END) {
+    const int refine_result = path_finder_->astarSearch(start2d, tmp_pos, 0.2, max_search_time);
+    if (attempt) {
+      attempt->search_result = refine_result;
+      attempt->early_terminate_cost = path_finder_->getEarlyTerminateCost();
+    }
+    if (refine_result == Astar2D::REACH_END) {
       refined_path = path_finder_->getPath();
       refined_pos = tmp_pos;
       if (!debug_msg.empty()) {
         ROS_WARN("%s", debug_msg.c_str());
       }
+      if (attempt) attempt->reached = true;
       return true;
     }
   }
@@ -557,15 +641,24 @@ bool ExplorationManager::trySearchObjectPathWithDistance(const Vector2d& start2d
 
 bool ExplorationManager::searchObjectPath(const Vector3d& start,
     const pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>& object_cloud,
-    Eigen::Vector2d& refined_pos, std::vector<Eigen::Vector2d>& refined_path)
+    Eigen::Vector2d& refined_pos, std::vector<Eigen::Vector2d>& refined_path,
+    ObjectPathEvidence* evidence)
 {
   const double max_search_time = 0.2;  // Maximum planning time per attempt
   Vector2d start2d = Vector2d(start(0), start(1));
 
   // Find nearest accessible point in object cloud
   Vector2d object_pose = findNearestObjectPoint(start, object_cloud);
-  if (object_pose.x() < -999.0)
+  if (evidence) {
+    evidence->geometry_available = object_pose.x() >= -999.0;
+    evidence->nearest_object_point = object_pose;
+    evidence->attempts.clear();
+    evidence->path.clear();
+  }
+  if (object_pose.x() < -999.0) {
+    if (evidence) evidence->final_reason = "empty_or_invalid_object_geometry";
     return false;  // Error indicator from findNearestObjectPoint
+  }
 
   // Try different safety distances in order of preference
   const std::vector<double> distances = { 0.5, 0.70, 0.85 };
@@ -574,12 +667,28 @@ bool ExplorationManager::searchObjectPath(const Vector3d& start,
 
   // Attempt path planning with each safety distance
   for (size_t i = 0; i < distances.size(); ++i) {
+    PathAttemptEvidence attempt;
     if (trySearchObjectPathWithDistance(start2d, object_pose, distances[i], max_search_time,
-            refined_pos, refined_path, debug_messages[i])) {
+            refined_pos, refined_path, debug_messages[i], evidence ? &attempt : nullptr)) {
+      if (evidence) {
+        evidence->attempts.push_back(attempt);
+        evidence->approach_point = refined_pos;
+        evidence->path = refined_path;
+        evidence->final_reason = "reachable";
+      }
       return true;
     }
+    if (evidence) evidence->attempts.push_back(attempt);
   }
 
+  if (evidence) {
+    bool timeout = false, pool = false;
+    for (const auto& attempt : evidence->attempts) {
+      timeout |= attempt.search_result == Astar2D::TIMEOUT;
+      pool |= attempt.search_result == Astar2D::NODE_POOL_EXHAUSTED;
+    }
+    evidence->final_reason = pool ? "node_pool_exhausted" : timeout ? "search_timeout" : "no_path";
+  }
   ROS_ERROR("Failed to find object path.");
   return false;
 }
@@ -639,12 +748,13 @@ void ExplorationManager::calcSemanticFrontierInfo(const vector<SemanticFrontier>
     std::cout << "No semantic frontiers available." << std::endl;
     max_to_mean = 1.0;  // Neutral ratio
     std_dev = 0.0;      // No variation
+    mean = 0.0;
     return;
   }
 
   // Compute mean and maximum semantic values
   double sum = 0.0;
-  double max_value = 0.0;
+  double max_value = sem_frontiers.front().semantic_value;
   for (const auto& frontier : sem_frontiers) {
     sum += frontier.semantic_value;
     max_value = max(max_value, frontier.semantic_value);
@@ -656,7 +766,7 @@ void ExplorationManager::calcSemanticFrontierInfo(const vector<SemanticFrontier>
   for (const auto& frontier : sem_frontiers)
     variance_sum += (frontier.semantic_value - mean) * (frontier.semantic_value - mean);
 
-  max_to_mean = max_value / mean;
+  max_to_mean = std::abs(mean) > 1e-12 ? max_value / mean : 1.0;
   std_dev = std::sqrt(variance_sum / sem_frontiers.size());
 
   // Print summary statistics

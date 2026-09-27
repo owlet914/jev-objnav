@@ -1,13 +1,22 @@
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import cv2
 import numpy as np
-import torch
 
-try:
-    from torchvision.ops import box_convert
-except ImportError:
-    print("Could not import box_convert. This is OK if you are only using the client.")
+
+def _as_numpy(value: Any, *, dtype: Any = np.float32) -> np.ndarray:
+    if hasattr(value, "detach"):
+        value = value.detach().cpu().numpy()
+    return np.asarray(value, dtype=dtype)
+
+
+def _box_convert_cxcywh_to_xyxy(boxes: np.ndarray) -> np.ndarray:
+    converted = boxes.copy()
+    converted[:, 0] = boxes[:, 0] - boxes[:, 2] / 2.0
+    converted[:, 1] = boxes[:, 1] - boxes[:, 3] / 2.0
+    converted[:, 2] = boxes[:, 0] + boxes[:, 2] / 2.0
+    converted[:, 3] = boxes[:, 1] + boxes[:, 3] / 2.0
+    return converted
 
 
 class ObjectDetections:
@@ -18,19 +27,26 @@ class ObjectDetections:
 
     def __init__(
         self,
-        boxes: torch.Tensor,
-        logits: torch.Tensor,
+        boxes: Any,
+        logits: Any,
         phrases: List[str],
         image_source: Optional[np.ndarray],
         fmt: str = "cxcywh",
+        *,
+        available: bool = True,
+        fallback: bool = False,
+        backend: str = "unknown",
     ):
         self.image_source = image_source
-        if fmt != "xyxy":
-            self.boxes = box_convert(boxes=boxes, in_fmt=fmt, out_fmt="xyxy")
-        else:
-            self.boxes = boxes
-        self.logits = logits
+        boxes_np = _as_numpy(boxes).reshape((-1, 4))
+        self.boxes = (
+            _box_convert_cxcywh_to_xyxy(boxes_np) if fmt != "xyxy" else boxes_np
+        )
+        self.logits = _as_numpy(logits).reshape((-1,))
         self.phrases = phrases
+        self.available = bool(available)
+        self.fallback = bool(fallback)
+        self.backend = str(backend)
         self._annotated_frame: Optional[np.ndarray] = None
 
     @property
@@ -65,7 +81,7 @@ class ObjectDetections:
         Args:
             conf_thresh (float): Confidence threshold to filter detections.
         """
-        keep: torch.Tensor = torch.ge(self.logits, conf_thresh)  # >=
+        keep = self.logits >= conf_thresh
         self._filter(keep)
 
     def filter_by_class(self, classes: List[str]) -> None:
@@ -74,12 +90,10 @@ class ObjectDetections:
         Args:
             classes (List[str]): List of classes to keep.
         """
-        keep: torch.Tensor = torch.tensor(
-            [p in classes for p in self.phrases], dtype=torch.bool
-        )
+        keep = np.asarray([p in classes for p in self.phrases], dtype=bool)
         self._filter(keep)
 
-    def _filter(self, keep: torch.Tensor) -> None:
+    def _filter(self, keep: np.ndarray) -> None:
         """Filters detections in-place."""
         # Return early if no detections to filter
         if keep.all():
@@ -101,6 +115,9 @@ class ObjectDetections:
             "boxes": self.boxes.tolist(),
             "logits": self.logits.tolist(),
             "phrases": self.phrases,
+            "available": self.available,
+            "fallback": self.fallback,
+            "backend": self.backend,
         }
 
     @classmethod
@@ -119,17 +136,22 @@ class ObjectDetections:
         """
         return cls(
             image_source=image_source,
-            boxes=torch.tensor(json_dict["boxes"]),
-            logits=torch.tensor(json_dict["logits"]),
+            boxes=json_dict["boxes"],
+            logits=json_dict["logits"],
             phrases=json_dict["phrases"],
             fmt="xyxy",
+            # A legacy response without provenance is unverified. Treating it as
+            # available would turn a missing service contract into real evidence.
+            available=json_dict.get("available", False),
+            fallback=json_dict.get("fallback", False),
+            backend=json_dict.get("backend", "unknown_unverified"),
         )
 
 
 def annotate(
     image_source: np.ndarray,
-    boxes: torch.Tensor,
-    logits: torch.Tensor,
+    boxes: np.ndarray,
+    logits: np.ndarray,
     phrases: List[str],
 ) -> np.ndarray:
     """
@@ -153,9 +175,8 @@ def annotate(
 
     # Draw bounding boxes, class names, and scores on image
     for box, prob, phrase in zip(boxes, logits, phrases):
-        # Convert tensor to numpy array
-        box = box.detach().cpu().numpy()
-        prob = prob.detach().cpu().numpy()
+        box = np.asarray(box)
+        prob = np.asarray(prob)
 
         # If the box appears to be in normalized coordinates, de-normalize using the
         # image dimensions

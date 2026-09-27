@@ -8,6 +8,7 @@ there is no fabricated success rate.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import re
 import statistics
@@ -21,11 +22,12 @@ def parse_run(directory: Path, expected_episodes: int = 24) -> dict:
         blocks = record.read_text(encoding="utf-8").split("Scene ID: ")[1:]
         outcomes = []
         for block in blocks:
-            match = re.search(r"^success or not:\s*(\S+)", block, re.MULTILINE)
+            match = re.search(r"^success or not:\s*(.+)$", block, re.MULTILINE)
             if match:
-                outcomes.append(match.group(1))
+                outcomes.append(match.group(1).strip())
         result["episodes_recorded"] = len(outcomes)
         result["successes"] = outcomes.count("success")
+        result["failure_reasons"] = dict(Counter(outcome for outcome in outcomes if outcome != "success"))
         if outcomes:
             result["success_rate"] = result["successes"] / len(outcomes)
     continuation = directory / "continue.txt"
@@ -44,7 +46,7 @@ def parse_run(directory: Path, expected_episodes: int = 24) -> dict:
         holds = sum(trace.get("decision", {}).get("status") == "HOLD" for trace in traces)
         latencies = [trace["latency_ms"] for trace in traces if isinstance(trace.get("latency_ms"), (int, float))]
         result["jev_decisions"] = len(traces)
-        result["fallback_decision_rate"] = holds / len(traces)
+        result["non_goal_decision_rate"] = holds / len(traces)
         if latencies:
             result["median_jev_latency_ms"] = statistics.median(latencies)
     result["complete"] = result.get("episodes_recorded", 0) == expected_episodes

@@ -46,6 +46,7 @@ public:
 
   // Core map management functions
   void initMap(ros::NodeHandle& nh);
+  void resetEpisode();
   void inputDepthCloud2D(const pcl::PointCloud<pcl::PointXY>::Ptr& points,
       const Eigen::Vector3d& camera_pos, vector<Eigen::Vector2i>& free_grids);
   void inputObjectCloud2D(
@@ -78,8 +79,11 @@ public:
   void getRegion(Eigen::Vector2d& ori, Eigen::Vector2d& size);
   void getMapBoundary(Eigen::Vector2d& bmin, Eigen::Vector2d& bmax);
   void getLocalUpdatedBox(Eigen::Vector2d& bmin, Eigen::Vector2d& bmax);
+  bool consumeRegionDirtyBox(Eigen::Vector2i& minimum, Eigen::Vector2i& maximum);
+  void markRegionDirtyBox(Eigen::Vector2i minimum, Eigen::Vector2i maximum);
   double getResolution();
   int getVoxelNum();
+  Eigen::Vector2i getVoxelDimensions();
   void setForceOccGrid(const Eigen::Vector2d& pos);
 
   // Integrated mapping components
@@ -87,6 +91,8 @@ public:
   shared_ptr<ValueMap> value_map_;
 
 private:
+  bool region_dirty_ = false;
+  Eigen::Vector2i region_dirty_min_, region_dirty_max_;
   // Internal map processing functions
   void clearAndInflateLocalMap();
   void inflatePoint(const Eigen::Vector2i& pt, int step, vector<Eigen::Vector2i>& pts);
@@ -101,6 +107,7 @@ private:
   unique_ptr<MapROS> map_ros_;      ///< ROS interface and visualization
   unique_ptr<RayCaster2D> caster_;  ///< Raycasting utility for occupancy updates
 
+  friend struct RegionGraphFixtureAccess;  // Test-only native map fixture.
   friend MapROS;  ///< Allow MapROS to access private members
 
 public:
@@ -299,6 +306,11 @@ inline double SDFMap2D::getResolution()
 inline int SDFMap2D::getVoxelNum()
 {
   return mp_->map_voxel_num_[0] * mp_->map_voxel_num_[1];
+}
+
+inline Eigen::Vector2i SDFMap2D::getVoxelDimensions()
+{
+  return mp_->map_voxel_num_;
 }
 
 /// Get map origin and size

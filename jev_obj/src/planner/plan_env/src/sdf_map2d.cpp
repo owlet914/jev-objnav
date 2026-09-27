@@ -15,6 +15,7 @@
 #include <plan_env/map_ros.h>
 #include <plan_env/object_map2d.h>
 #include <plan_env/value_map2d.h>
+#include <algorithm>
 #include <unordered_map>
 
 namespace jev_obj_planner {
@@ -116,6 +117,32 @@ void SDFMap2D::initMap(ros::NodeHandle& nh)
 
   caster_.reset(new RayCaster2D);
   caster_->setParams(mp_->resolution_, mp_->map_origin_);
+}
+
+void SDFMap2D::resetEpisode()
+{
+  markRegionDirtyBox(Eigen::Vector2i::Zero(), mp_->map_voxel_num_-Eigen::Vector2i::Ones());
+  std::fill(md_->occupancy_buffer_.begin(), md_->occupancy_buffer_.end(),
+      mp_->clamp_min_log_ - mp_->unknown_flag_);
+  std::fill(md_->occupancy_buffer_inflate_.begin(), md_->occupancy_buffer_inflate_.end(), 0);
+  std::fill(md_->count_hit_and_miss_.begin(), md_->count_hit_and_miss_.end(), 0);
+  std::fill(md_->count_hit_.begin(), md_->count_hit_.end(), 0);
+  std::fill(md_->count_miss_.begin(), md_->count_miss_.end(), 0);
+  std::fill(md_->flag_rayend_.begin(), md_->flag_rayend_.end(), -1);
+  std::fill(md_->distance_buffer_neg_.begin(), md_->distance_buffer_neg_.end(), mp_->default_dist_);
+  std::fill(md_->distance_buffer_.begin(), md_->distance_buffer_.end(), mp_->default_dist_);
+  std::fill(md_->tmp_buffer_.begin(), md_->tmp_buffer_.end(), 0.0);
+  std::fill(md_->virtual_ground_buffer_.begin(), md_->virtual_ground_buffer_.end(), 0);
+  md_->occupancy_need_clear_.clear();
+  std::queue<int> empty_queue;
+  md_->cache_voxel_.swap(empty_queue);
+  md_->raycast_num_ = 0;
+  md_->local_update_min_ = md_->local_update_max_ = Eigen::Vector2i(0, 0);
+  md_->local_update_mind_ = md_->local_update_maxd_ = Eigen::Vector2d(0, 0);
+  md_->update_min_ = md_->update_max_ = Eigen::Vector2i(0, 0);
+  md_->update_mind_ = md_->update_maxd_ = Eigen::Vector2d(0, 0);
+  object_map2d_->resetEpisode();
+  value_map_->resetEpisode();
 }
 
 void SDFMap2D::setCacheOccupancy(const int& adr, const int& occ)
@@ -360,6 +387,22 @@ void SDFMap2D::inputDepthCloud2D(const pcl::PointCloud<pcl::PointXY>::Ptr& point
   }
 }
 
+void SDFMap2D::markRegionDirtyBox(Eigen::Vector2i minimum, Eigen::Vector2i maximum)
+{
+  boundIndex(minimum); boundIndex(maximum);
+  if (!region_dirty_) { region_dirty_min_ = minimum; region_dirty_max_ = maximum; }
+  else { region_dirty_min_ = region_dirty_min_.cwiseMin(minimum);
+         region_dirty_max_ = region_dirty_max_.cwiseMax(maximum); }
+  region_dirty_ = true;
+}
+bool SDFMap2D::consumeRegionDirtyBox(Eigen::Vector2i& minimum, Eigen::Vector2i& maximum)
+{
+  if (!region_dirty_) return false;
+  minimum = region_dirty_min_; maximum = region_dirty_max_;
+  region_dirty_ = false;
+  return true;
+}
+
 void SDFMap2D::setForceOccGrid(const Eigen::Vector2d& pos)
 {
   // Force a grid cell to be occupied (used for debugging or special cases)
@@ -367,6 +410,7 @@ void SDFMap2D::setForceOccGrid(const Eigen::Vector2d& pos)
   posToIndex(pos, idx);
   int adr = toAddress(idx);
   md_->occupancy_buffer_[adr] = mp_->clamp_max_log_;
+  markRegionDirtyBox(idx, idx);
 }
 
 Eigen::Vector2d SDFMap2D::closetPointInMap(
@@ -435,6 +479,7 @@ void SDFMap2D::updateESDFMap()
   // Update Euclidean Signed Distance Field within local bounds
   Eigen::Vector2i min_esdf = md_->local_bound_min_;
   Eigen::Vector2i max_esdf = md_->local_bound_max_;
+  markRegionDirtyBox(min_esdf, max_esdf);
 
   // First pass: compute distance transform along Y-axis
   if (mp_->optimistic_) {
@@ -515,9 +560,13 @@ void SDFMap2D::clearAndInflateLocalMap()
   vector<Eigen::Vector2i> inf_pts;
   Eigen::Vector2i range_min = md_->local_update_min_;
   Eigen::Vector2i range_max = md_->local_update_max_;
+  markRegionDirtyBox(range_min - Eigen::Vector2i::Constant(inf_step),
+      range_max + Eigen::Vector2i::Constant(inf_step));
 
   // Clear inflation for voxels that changed from occupied to free
   for (auto idx : md_->occupancy_need_clear_) {
+    markRegionDirtyBox(idx - Eigen::Vector2i::Constant(inf_step),
+        idx + Eigen::Vector2i::Constant(inf_step));
     inflatePoint(idx, inf_step, inf_pts);
     for (auto& inf_pt : inf_pts) {
       int idx_inf = toAddress(inf_pt(0), inf_pt(1));

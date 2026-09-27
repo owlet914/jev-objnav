@@ -1,15 +1,8 @@
 from typing import Any, Optional
 
 import numpy as np
-import torch
 from PIL import Image
-import cv2
 from ..server_wrapper import ServerMixin, host_model, send_request, str_to_image
-
-try:
-    from lavis.models import load_model_and_preprocess
-except ModuleNotFoundError:
-    print("Could not import lavis. This is OK if you are only using the client.")
 
 
 class BLIP2ITM:
@@ -21,6 +14,9 @@ class BLIP2ITM:
         model_type: str = "pretrain",
         device: Optional[Any] = None,
     ) -> None:
+        import torch
+        from lavis.models import load_model_and_preprocess
+
         if device is None:
             device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
@@ -33,6 +29,7 @@ class BLIP2ITM:
             )
         )
         self.device = device
+        self._torch = torch
 
     def cosine(self, image: np.ndarray, txt: str) -> float:
         """
@@ -48,7 +45,7 @@ class BLIP2ITM:
         pil_img = Image.fromarray(image)
         img = self.vis_processors["eval"](pil_img).unsqueeze(0).to(self.device)
         txt = self.text_processors["eval"](txt)
-        with torch.inference_mode():
+        with self._torch.inference_mode():
             cosine = self.model(
                 {"image": img, "text_input": txt}, match_head="itc"
             ).item()
@@ -58,9 +55,9 @@ class BLIP2ITM:
         pil_img = Image.fromarray(image)
         img = self.vis_processors["eval"](pil_img).unsqueeze(0).to(self.device)
         txt = self.text_processors["eval"](txt)
-        with torch.inference_mode():
+        with self._torch.inference_mode():
             itm_output = self.model({"image": img, "text_input": txt}, match_head="itm")
-            itm_scores = torch.nn.functional.softmax(itm_output, dim=1)
+            itm_scores = self._torch.nn.functional.softmax(itm_output, dim=1)
 
         itm_score = itm_scores[:, 1].item()
         return itm_score
@@ -71,9 +68,19 @@ class BLIP2ITMClient:
         self.url = f"http://localhost:{port}/blip2itm"
 
     def cosine(self, image: np.ndarray, txt: str) -> float:
-        # print(f"BLIP2ITMClient.cosine: {image.shape}, {txt}")
+        return self.cosine_with_metadata(image, txt)[0]
+
+    def cosine_with_metadata(self, image: np.ndarray, txt: str):
         response = send_request(self.url, image=image, txt=txt)
-        return float(response["response"])
+        fallback = bool(response.get("fallback", False))
+        metadata_present = "available" in response and "backend" in response
+        metadata = {
+            "available": bool(response.get("available", False)) if metadata_present else False,
+            "fallback": fallback,
+            "backend": str(response.get("backend", "unknown_unverified")),
+            "metadata_verified": metadata_present,
+        }
+        return float(response["response"]), metadata
 
     def itm_score(self, image: np.ndarray, txt: str) -> np.ndarray:
         print(f"Question of blip2 is:{txt}")
@@ -83,12 +90,26 @@ class BLIP2ITMClient:
 
 if __name__ == "__main__":
     import argparse
+    import torch
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=12182)
+    parser.add_argument(
+        "--device",
+        choices=("auto", "cpu", "cuda"),
+        default="auto",
+        help="Inference device. 'auto' selects CUDA when it is available.",
+    )
     args = parser.parse_args()
 
-    print("Loading model...")
+    if args.device == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(args.device)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("--device cuda requested, but CUDA is not available")
+
+    print(f"Loading model on {device}...")
 
     class BLIP2ITMServer(ServerMixin, BLIP2ITM):
         def process_payload(self, payload: dict) -> dict:
@@ -96,9 +117,12 @@ if __name__ == "__main__":
             return {
                 "response": self.cosine(image, payload["txt"]),
                 "itm score": self.itm_scores(image, payload["txt"]),
+                "available": True,
+                "fallback": False,
+                "backend": "blip2_itm",
             }
 
-    blip = BLIP2ITMServer()
+    blip = BLIP2ITMServer(device=device)
     print("Model loaded!")
     print(f"Hosting on port {args.port}...")
     host_model(blip, name="blip2itm", port=args.port)

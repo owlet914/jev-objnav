@@ -13,7 +13,7 @@
 
 namespace jev_obj_planner {
 
-enum FINAL_RESULT { EXPLORE, SEARCH_OBJECT, STUCKING, NO_FRONTIER, REACH_OBJECT };
+enum FINAL_RESULT { EXPLORE, SEARCH_OBJECT, STUCKING, NO_FRONTIER, REACH_OBJECT, JEV_RETRY, JEV_FAILURE };
 
 struct FSMData {
   FSMData()
@@ -49,6 +49,14 @@ struct FSMData {
     escape_stucking_count_ = 0;
     stucking_points_.clear();
 
+    object_confirmation_pending_ = false;
+    object_confirmation_candidate_id_.clear();
+    object_confirmation_target_id_.clear();
+    object_confirmation_start_observation_id_ = -1;
+    object_confirmation_last_observation_id_ = -1;
+    object_confirmation_attempts_ = 0;
+    object_confirmation_valid_hits_ = 0;
+
     local_pos_ = Eigen::Vector2d(0, 0);
   }
   // FSM data
@@ -79,6 +87,18 @@ struct FSMData {
   double escape_stucking_yaw_;
   std::vector<Eigen::Vector3d> stucking_points_;
 
+  // Jev object choices are navigation hypotheses. Reaching the local approach
+  // point starts a fresh multi-view confirmation phase; it is not success by
+  // itself. These fields deliberately remain in the local controller and never
+  // use Habitat ground truth.
+  bool object_confirmation_pending_;
+  std::string object_confirmation_candidate_id_;
+  std::string object_confirmation_target_id_;
+  int object_confirmation_start_observation_id_;
+  int object_confirmation_last_observation_id_;
+  int object_confirmation_attempts_;
+  int object_confirmation_valid_hits_;
+
   Eigen::Vector2d local_pos_;
   LocalTrajectory newest_traj_;  // Store latest planned trajectory
 };
@@ -91,6 +111,9 @@ struct FSMParam {
     replan_traj_end_threshold_ = 1.0;
     replan_frontier_change_delay_ = 0.5;
     replan_timeout_ = 2.0;
+    object_confirmation_required_hits_ = 2;
+    object_confirmation_max_attempts_ = 4;
+    object_confirmation_cooldown_observations_ = 12;
 
     const double step_length = 0.25;
     const double angle_increment = M_PI / 6;
@@ -108,6 +131,9 @@ struct FSMParam {
   double replan_traj_end_threshold_;
   double replan_frontier_change_delay_;
   double replan_timeout_;
+  int object_confirmation_required_hits_;
+  int object_confirmation_max_attempts_;
+  int object_confirmation_cooldown_observations_;
 };
 
 struct ExplorationData {
@@ -117,6 +143,14 @@ struct ExplorationData {
     frontier_averages_.clear();
     dormant_frontiers_.clear();
     dormant_frontier_averages_.clear();
+    frontier_ids_.clear();
+    dormant_frontier_ids_.clear();
+    frontier_dormancy_reasons_.clear();
+    dormant_frontier_dormancy_reasons_.clear();
+    frontier_parent_ids_.clear();
+    dormant_frontier_parent_ids_.clear();
+    frontier_lineage_events_.clear();
+    dormant_frontier_lineage_events_.clear();
     objects_.clear();
     object_averages_.clear();
     object_labels_.clear();
@@ -126,6 +160,10 @@ struct ExplorationData {
   }
   std::vector<std::vector<Eigen::Vector2d>> frontiers_, dormant_frontiers_;
   std::vector<Eigen::Vector2d> frontier_averages_, dormant_frontier_averages_;
+  std::vector<int> frontier_ids_, dormant_frontier_ids_;
+  std::vector<std::string> frontier_dormancy_reasons_, dormant_frontier_dormancy_reasons_;
+  std::vector<std::vector<int>> frontier_parent_ids_, dormant_frontier_parent_ids_;
+  std::vector<std::string> frontier_lineage_events_, dormant_frontier_lineage_events_;
   std::vector<std::vector<Eigen::Vector2d>> objects_;
   std::vector<Eigen::Vector2d> object_averages_;
   std::vector<int> object_labels_;

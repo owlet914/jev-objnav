@@ -13,6 +13,8 @@
 
 #include <plan_env/value_map2d.h>
 
+#include <algorithm>
+
 namespace jev_obj_planner {
 ValueMap::ValueMap(SDFMap2D* sdf_map, ros::NodeHandle& nh)
 {
@@ -22,6 +24,12 @@ ValueMap::ValueMap(SDFMap2D* sdf_map, ros::NodeHandle& nh)
   confidence_buffer_ = vector<double>(voxel_num, 0.0);
 }
 
+void ValueMap::resetEpisode()
+{
+  std::fill(value_buffer_.begin(), value_buffer_.end(), 0.0);
+  std::fill(confidence_buffer_.begin(), confidence_buffer_.end(), 0.0);
+}
+
 void ValueMap::updateValueMap(const Vector2d& sensor_pos, const double& sensor_yaw,
     const vector<Vector2i>& free_grids, const double& itm_score)
 {
@@ -29,6 +37,7 @@ void ValueMap::updateValueMap(const Vector2d& sensor_pos, const double& sensor_y
     Vector2d pos;
     sdf_map_->indexToPos(grid, pos);
     int adr = sdf_map_->toAddress(grid);
+    sdf_map_->markRegionDirtyBox(grid, grid);
 
     // Calculate FOV-based confidence for current observation
     double now_confidence = getFovConfidence(sensor_pos, sensor_yaw, pos);

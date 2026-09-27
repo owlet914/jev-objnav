@@ -1,4 +1,5 @@
 import cv2
+import json
 import numpy as np
 from vlm.coco_classes import COCO_CLASSES
 from vlm.detector.yolov7 import YOLOv7Client
@@ -63,13 +64,78 @@ def get_segmentation(segmented_img, idx, detections, img, label, score, color):
 
     return segmented_img, object_mask
 
-def get_object(right_label, img, cfg, similar_answer):
+def get_object(right_label, img, cfg, similar_answer, return_metadata=False):
     score_list = []
     object_masks_list = []
     segmented_img = img.copy()
     label_list = []
     coco_label = []
     dino_label = []
+    perception = {
+        "available": False,
+        "fallback": False,
+        "target_available": False,
+        "related_available": False,
+        "detectors": [],
+    }
+
+    def record_detector(name, detections, requested_classes, error=None):
+        status = {
+            "name": name,
+            "backend": str(getattr(detections, "backend", "unavailable")),
+            "available": bool(getattr(detections, "available", False)),
+            "fallback": bool(getattr(detections, "fallback", False)),
+            "requested_classes": list(requested_classes),
+            "target_coverage": any(item in right_label_list for item in requested_classes),
+            "raw_detection_count": len(detections.logits) if detections is not None else 0,
+            "target_match_count": 0,
+            "related_match_count": 0,
+            "valid_mask_count": 0,
+            "segmentation_error_count": 0,
+            "invalid_classes": [],
+            "error": error,
+        }
+        perception["detectors"].append(status)
+        perception["available"] = perception["available"] or (
+            status["available"] and not status["fallback"]
+        )
+        perception["fallback"] = perception["fallback"] or status["fallback"]
+        return status
+
+    def process_detections(detections, status):
+        for idx in range(len(detections.logits)):
+            label_detected = detections.phrases[idx]
+            if label_detected in right_label_list:
+                label_index = 0
+                color = (255, 0, 0)
+                count_key = "target_match_count"
+            elif label_detected in all_answer:
+                label_index = list(all_answer).index(label_detected) - len(right_label_list) + 1
+                if label_index <= 0:
+                    continue
+                color = (0, 255, 0)
+                count_key = "related_match_count"
+            else:
+                continue
+            score = detections.logits[idx].item()
+            try:
+                segmented, object_mask = get_segmentation(
+                    segmented_img, idx, detections, img, label_detected, score, color=color
+                )
+            except Exception as exc:
+                status["segmentation_error_count"] += 1
+                status["invalid_classes"].append(label_detected)
+                status["error"] = status["error"] or f"segmentation:{type(exc).__name__}"
+                continue
+            segmented_img[:] = segmented
+            if not np.any(object_mask):
+                status["invalid_classes"].append(label_detected)
+                continue
+            score_list.append(score)
+            object_masks_list.append(object_mask)
+            label_list.append(label_index)
+            status[count_key] += 1
+            status["valid_mask_count"] += int(bool(np.any(object_mask)))
     right_label_list = list(map(str.strip, right_label.split('|')))
     # print(f"right_label_list: {right_label_list}")
     all_answer = right_label_list + similar_answer
@@ -87,50 +153,73 @@ def get_object(right_label, img, cfg, similar_answer):
                 coco_label.append(label)
 
     if coco_label:
-        detections = yolov7_detector.predict(img, agnostic_nms=cfg.yolo.agnostic_nms, 
-                                            conf_thres=cfg.yolo.confidence_threshold_yolo, iou_thres=cfg.yolo.iou_threshold_yolo)
-        for idx in range(len(detections.logits)):
-            label_detected = detections.phrases[idx]
-            score = detections.logits[idx].item()
-            if detections.phrases[idx] in right_label_list:
-                segmented_img, object_mask = get_segmentation(
-                    segmented_img, idx, detections, img, label_detected, score, color=(255, 0, 0)
-                )
-                score_list.append(score)
-                object_masks_list.append(object_mask)
-                label_list.append(0)
-            elif detections.phrases[idx] in coco_label:
-                segmented_img, object_mask = get_segmentation(
-                    segmented_img, idx, detections, img, label_detected, score, color=(0, 255, 0)
-                )
-                score_list.append(score)
-                object_masks_list.append(object_mask)
-                label_list.append(list(all_answer).index(label_detected) - len(right_label_list)+1)
+        try:
+            detections = yolov7_detector.predict(
+                img, agnostic_nms=cfg.yolo.agnostic_nms,
+                conf_thres=cfg.yolo.confidence_threshold_yolo,
+                iou_thres=cfg.yolo.iou_threshold_yolo,
+            )
+            status = record_detector("yolov7", detections, coco_label)
+            process_detections(detections, status)
+        except Exception as exc:
+            record_detector("yolov7", None, coco_label, type(exc).__name__)
 
     if dino_label:
         caption = ' '.join(f'{item}.  ' for item in dino_label)
-        detections = dino_detector.predict(img, caption=caption, 
-                                        box_threshold=cfg.groundingDINO.confidence_threshold_dino, text_threshold=cfg.groundingDINO.text_threshold)
-        for idx in range(len(detections.logits)):
-            label_detected = detections.phrases[idx]
-            score = detections.logits[idx].item()
-            if label_detected in right_label_list:
-                segmented_img, object_mask = get_segmentation(
-                    segmented_img, idx, detections, img, label_detected, score, color=(255, 0, 0)
-                )
-                score_list.append(score)
-                object_masks_list.append(object_mask)
-                label_list.append(0)
+        try:
+            detections = dino_detector.predict(
+                img, caption=caption,
+                box_threshold=cfg.groundingDINO.confidence_threshold_dino,
+                text_threshold=cfg.groundingDINO.text_threshold,
+            )
+            status = record_detector("grounding_dino", detections, dino_label)
+            process_detections(detections, status)
+        except Exception as exc:
+            record_detector("grounding_dino", None, dino_label, type(exc).__name__)
 
-            elif label_detected in dino_label:
-                segmented_img, object_mask = get_segmentation(
-                    segmented_img, idx, detections, img, label_detected, score, color=(0, 255, 0)
-                )
-                score_list.append(score)
-                object_masks_list.append(object_mask)
-                label_list.append(list(all_answer).index(label_detected) - len(right_label_list)+1)
+    real_detectors = [
+        item for item in perception["detectors"]
+        if item["available"] and not item["fallback"]
+    ]
+    def class_served(label):
+        return any(
+            label in item["requested_classes"]
+            for item in real_detectors
+        )
 
-    return segmented_img, score_list, object_masks_list, label_list
+    def class_evidence_valid(label):
+        return class_served(label) and not any(
+            label in item["invalid_classes"]
+            for item in real_detectors
+        )
+
+    perception["target_available"] = bool(right_label_list) and all(
+        class_served(label) for label in right_label_list
+    )
+    related_requested = any(
+        item not in right_label_list for item in all_answer
+    )
+    perception["related_available"] = (
+        all(class_served(label) for label in similar_answer)
+        if related_requested else True
+    )
+    perception["label_detection_valid"] = [
+        bool(right_label_list) and all(class_evidence_valid(label) for label in right_label_list)
+    ] + [
+        class_evidence_valid(label) for label in similar_answer
+    ]
+    perception["target_match_count"] = sum(
+        item["target_match_count"] for item in perception["detectors"]
+    )
+    perception["related_match_count"] = sum(
+        item["related_match_count"] for item in perception["detectors"]
+    )
+    perception["valid_mask_count"] = sum(
+        item["valid_mask_count"] for item in perception["detectors"]
+    )
+
+    result = (segmented_img, score_list, object_masks_list, label_list)
+    return (*result, perception) if return_metadata else result
 
 def get_object_with_itm(label, img, cfg):
     score_list = []
@@ -197,4 +286,3 @@ def crop_and_expand_box(img, detections, idx, expand_pixels=0.4):
     img_detected = img[y_min:y_max+1, x_min:x_max+1]
 
     return img_detected
-

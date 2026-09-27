@@ -1,0 +1,6 @@
+﻿序号,run_id,目标,步数,SPL,Jev API调用,探索决策,接近目标决策,平均API延迟ms,原始视频,纯RGB视频
+1,smoke_20260927T050857Z,kitchen shelf,196,0.211937,151,63,88,656.8,01_episode_02_kitchen_shelf.mp4,01_episode_02_kitchen_shelf_rgb.mp4
+2,smoke_20260927T065224Z,table,40,0.686802,10,0,10,556.3,02_episode_11_table.mp4,02_episode_11_table_rgb.mp4
+3,smoke_20260927T070522Z,chair,179,0.344770,145,104,41,567.4,03_episode_14_chair.mp4,03_episode_14_chair_rgb.mp4
+4,smoke_20260927T073812Z,clothes,65,0.686612,36,0,36,615.5,04_episode_17_clothes.mp4,04_episode_17_clothes_rgb.mp4
+5,smoke_20260927T074240Z,table,88,0.774686,59,34,25,530.4,05_episode_18_table.mp4,05_episode_18_table_rgb.mp4

@@ -44,6 +44,13 @@ struct Frontier2D {
   /// Unique identifier for this frontier cluster
   int id_;
 
+  /// Why the frontier left the active set; empty while active.
+  std::string dormancy_reason_;
+
+  /// Stable-ID lineage when a changed frontier is re-extracted, split, or merged.
+  vector<int> parent_ids_;
+  std::string lineage_event_;
+
   /// Axis-aligned bounding box min/max coordinates
   Vector2d box_min_, box_max_;
 };
@@ -57,8 +64,14 @@ public:
   bool dormantSeenFrontiers(Vector2d sensor_pos, double sensor_yaw);
   void setForceDormantFrontier(const Vector2d& frontier_center);
 
-  void getFrontiers(vector<vector<Vector2d>>& clusters, vector<Vector2d>& averages);
-  void getDormantFrontiers(vector<vector<Vector2d>>& clusters, vector<Vector2d>& averages);
+  void getFrontiers(vector<vector<Vector2d>>& clusters, vector<Vector2d>& averages,
+      vector<int>* ids = nullptr, vector<std::string>* reasons = nullptr,
+      vector<vector<int>>* parent_ids = nullptr,
+      vector<std::string>* lineage_events = nullptr);
+  void getDormantFrontiers(vector<vector<Vector2d>>& clusters, vector<Vector2d>& averages,
+      vector<int>* ids = nullptr, vector<std::string>* reasons = nullptr,
+      vector<vector<int>>* parent_ids = nullptr,
+      vector<std::string>* lineage_events = nullptr);
   void getFrontierBoxes(vector<pair<Vector2d, Vector2d>>& boxes);
   bool isAnyFrontierChanged();
   void wrapYaw(double& yaw);
@@ -98,6 +111,7 @@ private:
   double cluster_size_xy_;
   double min_view_finish_fraction_, resolution_;
   int min_contain_unknown_;
+  int next_frontier_id_ = 0;
 
   shared_ptr<SDFMap2D> sdf_map_;
   unique_ptr<RayCaster2D> raycaster_;

@@ -432,8 +432,12 @@ bool ExplorationFSMReal::updateFrontierAndObject()
   change_flag = frt_map->isAnyFrontierChanged();
   frt_map->searchFrontiers();
   change_flag |= frt_map->dormantSeenFrontiers(sensor_pos, fd_->odom_yaw_);
-  frt_map->getFrontiers(ed->frontiers_, ed->frontier_averages_);
-  frt_map->getDormantFrontiers(ed->dormant_frontiers_, ed->dormant_frontier_averages_);
+  frt_map->getFrontiers(ed->frontiers_, ed->frontier_averages_, &ed->frontier_ids_,
+      &ed->frontier_dormancy_reasons_, &ed->frontier_parent_ids_,
+      &ed->frontier_lineage_events_);
+  frt_map->getDormantFrontiers(ed->dormant_frontiers_, ed->dormant_frontier_averages_,
+      &ed->dormant_frontier_ids_, &ed->dormant_frontier_dormancy_reasons_,
+      &ed->dormant_frontier_parent_ids_, &ed->dormant_frontier_lineage_events_);
   obj_map->getObjects(ed->objects_, ed->object_averages_, ed->object_labels_);
 
   return change_flag;

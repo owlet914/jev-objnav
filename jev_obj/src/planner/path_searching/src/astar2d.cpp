@@ -93,7 +93,7 @@ int Astar2D::astarSearch(const Eigen::Vector2d& start_pt, const Eigen::Vector2d&
     if ((ros::Time::now() - t1).toSec() > max_time) {
       early_terminate_cost_ = cur_node->g_score + getDiagHeu(cur_node->position, end_pt);
       // ROS_WARN("Astar Long Time");
-      return NO_PATH;
+      return TIMEOUT;
     }
 
     open_set_.pop();
@@ -143,7 +143,7 @@ int Astar2D::astarSearch(const Eigen::Vector2d& start_pt, const Eigen::Vector2d&
         use_node_num_ += 1;
         if (use_node_num_ == allocate_num_) {
           cout << "run out of node pool." << endl;
-          return NO_PATH;
+          return NODE_POOL_EXHAUSTED;
         }
         neighbor->index = nbr_idx;
         neighbor->position = nbr_pos;

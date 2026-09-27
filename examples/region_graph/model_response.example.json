@@ -1,0 +1,14 @@
+{
+  "answers": {
+    "next_goal": {
+      "choice": "approach:object-7-goal",
+      "confidence": 0.8,
+      "probabilities": {
+        "explore:frontier-2-goal": 0.2,
+        "approach:object-7-goal": 0.8
+      }
+    }
+  },
+  "example_only": true,
+  "note": "Synthetic response for contract documentation; not a live Jev result."
+}

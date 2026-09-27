@@ -14,6 +14,8 @@
     <!-- Real-world mode flag (default to false for simulation) -->
     <arg name="is_real_world_" default="false"/>
     <arg name="jev_enabled_" default="false"/>
+    <arg name="jev_url_" default="http://127.0.0.1:8765/decide"/>
+    <arg name="jev_state_profile_" default="full"/>
 
     <!-- main node -->
     <node pkg="exploration_manager" name="exploration_node" type="exploration_node" output="screen">
@@ -27,8 +29,14 @@
         <!-- FSM mode selection -->
         <param name="is_real_world" value="$(arg is_real_world_)" type="bool"/>
         <param name="jev/enabled" value="$(arg jev_enabled_)" type="bool"/>
-        <param name="jev/url" value="http://127.0.0.1:8765/decide" type="string"/>
-        <param name="jev/timeout_ms" value="5000" type="int"/>
+        <param name="jev/url" value="$(arg jev_url_)" type="string"/>
+        <param name="jev/state_profile" value="$(arg jev_state_profile_)" type="string"/>
+        <param name="jev/timeout_ms" value="45000" type="int"/>
+        <param name="jev/region_tile_size_m" value="3.0" type="double"/>
+        <param name="jev/region_localization_tolerance_m" value="0.35" type="double"/>
+        <param name="jev/object_confirmation_required_hits" value="2" type="int"/>
+        <param name="jev/object_confirmation_max_attempts" value="4" type="int"/>
+        <param name="jev/object_confirmation_cooldown_observations" value="12" type="int"/>
         <param name="jev/max_frontiers" value="6" type="int"/>
         <param name="jev/max_objects" value="3" type="int"/>
 

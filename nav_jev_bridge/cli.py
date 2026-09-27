@@ -15,8 +15,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Select a high-level navigation goal from a structured snapshot")
     parser.add_argument("snapshot", help="JSON snapshot path, or '-' for stdin")
     parser.add_argument("--provider", choices=("demo", "openrouter"), default="demo")
-    parser.add_argument("--min-confidence", type=float, default=0.4)
-    parser.add_argument("--min-probability", type=float, default=0.5)
+    parser.add_argument(
+        "--min-confidence", type=float, default=0.4,
+        help="deprecated compatibility value; validated but not used to gate a legal choice",
+    )
+    parser.add_argument(
+        "--min-probability", type=float, default=0.5,
+        help="deprecated compatibility value; validated but not used to gate a legal choice",
+    )
     parser.add_argument("--state-profile", choices=STATE_PROFILES, default="full")
     args = parser.parse_args()
 

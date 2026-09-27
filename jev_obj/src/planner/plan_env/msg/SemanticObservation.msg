@@ -1,0 +1,9 @@
+std_msgs/Header header
+string episode_id
+uint64 observation_id
+string query_text
+string score_type
+float64 raw_score
+bool valid
+bool fallback
+string backend

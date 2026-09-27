@@ -10,6 +10,7 @@
 
 // Custom messages and mapping components
 #include <plan_env/MultipleMasksWithConfidence.h>
+#include <plan_env/SemanticObservation.h>
 #include <plan_env/sdf_map2d.h>
 #include <plan_env/object_map2d.h>
 #include <plan_env/value_map2d.h>
@@ -22,7 +23,6 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/Odometry.h>
 #include <visualization_msgs/Marker.h>
-#include <std_msgs/Float64.h>
 
 // PCL for point cloud processing
 #include <pcl/filters/voxel_grid.h>
@@ -41,6 +41,7 @@
 #include <pcl/search/impl/search.hpp>
 #include <pcl/filters/conditional_removal.h>
 #include <unordered_set>
+#include <map>
 
 // Type aliases for convenience
 using std::shared_ptr;
@@ -62,11 +63,12 @@ public:
 
 private:
   // ROS callback functions
-  void depthPoseCallback(  ///< Process synchronized depth image and pose data
-      const sensor_msgs::ImageConstPtr& img, const nav_msgs::OdometryConstPtr& pose);
+  void depthPoseCallback(const sensor_msgs::ImageConstPtr& img,
+      const nav_msgs::OdometryConstPtr& pose,
+      const plan_env::SemanticObservationConstPtr& semantic);
   void updateESDFCallback(const ros::TimerEvent& /*event*/);
   void detectedObjectCloudCallback(const plan_env::MultipleMasksWithConfidenceConstPtr& msg);
-  void itmScoreCallback(const std_msgs::Float64ConstPtr& msg);
+  void processDetectedObjectCloud(const plan_env::MultipleMasksWithConfidenceConstPtr& msg);
   void visCallback(const ros::TimerEvent& /*event*/);
 
   // Visualization publishing functions
@@ -86,7 +88,8 @@ private:
   void processDepthImage();     ///< Process raw depth image into 3D point cloud
   void filterPointCloudToXY();  ///< Filter 3D points to 2D occupancy grid representation
   void getObservationObjectsCloud(
-      const std::vector<int>& filter_object_ids);  ///< Extract undetected objects from depth data
+      const std::vector<int>& filter_object_ids,
+      const std::vector<bool>& label_detection_valid);  ///< Extract undetected objects from depth data
 
   // Utility functions
   bool interpolateLineAtZ(
@@ -98,7 +101,8 @@ private:
   SDFMap2D* map_;
 
   // Message synchronization types
-  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, nav_msgs::Odometry>
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, nav_msgs::Odometry,
+      plan_env::SemanticObservation>
       SyncPolicyImagePose;  ///< Policy for synchronizing depth images with pose data
   typedef shared_ptr<message_filters::Synchronizer<SyncPolicyImagePose>> SynchronizerImagePose;
 
@@ -106,6 +110,7 @@ private:
   ros::NodeHandle node_;
   shared_ptr<message_filters::Subscriber<sensor_msgs::Image>> depth_sub_;
   shared_ptr<message_filters::Subscriber<nav_msgs::Odometry>> pose_sub_;
+  shared_ptr<message_filters::Subscriber<plan_env::SemanticObservation>> semantic_sub_;
   SynchronizerImagePose sync_image_pose_;  ///< Synchronizer for depth and pose messages
 
   // ROS publishers for map visualization
@@ -115,7 +120,7 @@ private:
       value_map_pub_, confidence_map_pub_;
 
   // ROS subscribers for sensor data
-  ros::Subscriber detected_object_cloud_sub_, itm_score_sub_;
+  ros::Subscriber detected_object_cloud_sub_;
 
   // ROS timers for periodic updates
   ros::Timer esdf_timer_, vis_timer_;
@@ -147,6 +152,14 @@ private:
   // Object detection and ITM integration
   int continue_over_depth_count_;  ///< Counter for maintaining over-depth object consistency
   double itm_score_;               ///< Current image-text matching score
+  bool itm_valid_;
+  bool itm_fallback_;
+  std::string itm_backend_, itm_query_text_, itm_score_type_;
+  std::string current_episode_id_;
+  uint64_t current_observation_id_ = 0;
+  uint64_t map_revision_ = 0;
+  ros::Time current_observation_stamp_;
+  std::map<uint64_t, plan_env::MultipleMasksWithConfidenceConstPtr> pending_detections_;
   ros::Time map_start_time_;       ///< Timestamp of mapping system initialization
 
   friend SDFMap2D;

@@ -29,6 +29,10 @@ habitat:
   simulator:
     habitat_sim_v0:
       allow_sliding: false
+      # WSL exposes the render device through EGL without a matching CUDA
+      # ordinal. Let Habitat-Sim select that EGL device automatically; native
+      # Linux multi-GPU runs can override this with an explicit nonnegative ID.
+      gpu_device_id: -1
     forward_step_size: 0.25
     turn_angle: 30
     agents:
@@ -61,3 +65,4 @@ continue_file_name: "continue.txt"
 need_video: false
 video_output_path: "videos/test_ovon_{split}"
 test_epi_num: -1
+eval_episode_limit: -1

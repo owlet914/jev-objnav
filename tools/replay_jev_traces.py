@@ -27,10 +27,15 @@ def replay(trace_dir: Path, provider, max_snapshots: int, thresholds: list[float
         trace = json.loads(path.read_text(encoding="utf-8"))
         if "snapshot" in trace:
             snapshots.append(trace["snapshot"])
+        elif isinstance(trace.get("model_request"), dict) and isinstance(trace["model_request"].get("state"), dict):
+            snapshots.append(trace["model_request"]["state"])
         if len(snapshots) >= max_snapshots:
             break
     result = {"snapshots": len(snapshots), "profiles": {}}
-    for profile in STATE_PROFILES:
+    profiles = [profile for profile in STATE_PROFILES if profile != "region_graph"]
+    if snapshots and all(isinstance(snapshot.get("region_graph"), dict) for snapshot in snapshots):
+        profiles.append("region_graph")
+    for profile in profiles:
         decisions = []
         latencies = []
         for snapshot in snapshots:

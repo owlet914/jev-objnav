@@ -2,7 +2,6 @@ import os
 from typing import Any, List, Optional
 
 import numpy as np
-import torch
 
 from ..server_wrapper import (
     ServerMixin,
@@ -13,12 +12,6 @@ from ..server_wrapper import (
     str_to_image,
 )
 
-try:
-    from mobile_sam import SamPredictor, sam_model_registry
-except ModuleNotFoundError:
-    print("Could not import mobile_sam. This is OK if you are only using the client.")
-
-
 class MobileSAM:
     def __init__(
         self,
@@ -26,9 +19,13 @@ class MobileSAM:
         model_type: str = "vit_t",
         device: Optional[Any] = None,
     ) -> None:
+        import torch
+        from mobile_sam import SamPredictor, sam_model_registry
+
         if device is None:
             device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
         self.device = device
+        self._torch = torch
 
         mobile_sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
         mobile_sam.to(device=device)
@@ -49,7 +46,7 @@ class MobileSAM:
 
         """
         print("mobile_sam is segmenting")
-        with torch.inference_mode():
+        with self._torch.inference_mode():
             self.predictor.set_image(image)
             masks, iou_predictions_np, _ = self.predictor.predict(
                 box=np.array(bbox), multimask_output=False

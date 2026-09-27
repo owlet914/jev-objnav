@@ -8,7 +8,8 @@ def blip2itm():
     # It does not create candidates or choose actions; Jev remains the high-level selector.
     if not isinstance(request.json, dict) or 'image' not in request.json or 'txt' not in request.json:
         return jsonify({'error': 'image and txt are required'}), 400
-    return jsonify({'response': 0.5, 'itm score': 0.5, 'fallback': True})
+    return jsonify({'response': 0.5, 'itm score': 0.5, 'available': False,
+                    'fallback': True, 'backend': 'itm_fixed_fallback'})
 
 if __name__ == '__main__':
     app.run(host='localhost', port=12182)

@@ -1,5 +1,5 @@
 # Local source copy and handoff
-/ApexNav/
+/A[p]exNav/
 /HANDOFF.md
 /.runtime/
 
@@ -16,6 +16,7 @@
 *.pth
 *.onnx
 *.mp4
+!/demo/five_successes/*.mp4
 *.bag
 *.log
 record.txt
@@ -48,10 +49,17 @@ __pycache__/
 *.so
 *.a
 
-# Local source retrieval metadata; README attribution to be completed before publishing
+# Local source retrieval metadata
 /jev_obj/SOURCE_REVISION.txt
 /docs/upstream_tree.json
 /tools/fetch_upstream_source.py
+
+# Local handoff, audit, and experiment notes (public docs live in README/SETUP)
+/docs/CURRENT_JEV_RUNBOOK.md
+/docs/JEV_*.md
+/docs/JEV_*.json
+/docs/交付文档/
+/jev_obj/examples/
 
 # Large archives and additional model formats
 *.zip

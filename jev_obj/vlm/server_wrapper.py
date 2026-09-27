@@ -66,24 +66,38 @@ def str_to_image(img_str: str) -> np.ndarray:
     return img_np
 
 
-def send_request(url: str, **kwargs: Any) -> dict:
-    response = {}
-    for attempt in range(10):
+def send_request(
+    url: str,
+    *,
+    request_timeout_s: float = 30.0,
+    max_attempts: int = 3,
+    retry_delay_s: float = 1.0,
+    **kwargs: Any,
+) -> dict:
+    if request_timeout_s <= 0:
+        raise ValueError("request_timeout_s must be positive")
+    if max_attempts <= 0:
+        raise ValueError("max_attempts must be positive")
+    last_error: Exception | None = None
+    for attempt in range(max_attempts):
         try:
-            response = _send_request(url, **kwargs)
-            break
+            return _send_request(
+                url, request_timeout_s=request_timeout_s, **kwargs
+            )
         except Exception as e:
-            if attempt == 9:
-                print(e)
-                exit()
-            else:
-                print(f"Error: {e}. Retrying in 20-30 seconds...")
-                time.sleep(20 + random.random() * 10)
+            last_error = e
+            if attempt + 1 < max_attempts:
+                print(
+                    f"Error: {e}. Retrying perception request "
+                    f"({attempt + 2}/{max_attempts})..."
+                )
+                time.sleep(max(0.0, retry_delay_s))
+    raise RuntimeError(
+        f"Perception request failed after {max_attempts} attempts: {url}"
+    ) from last_error
 
-    return response
 
-
-def _send_request(url: str, **kwargs: Any) -> dict:
+def _send_request(url: str, *, request_timeout_s: float, **kwargs: Any) -> dict:
     lockfiles_dir = "lockfiles"
     if not os.path.exists(lockfiles_dir):
         os.makedirs(lockfiles_dir)
@@ -127,22 +141,11 @@ def _send_request(url: str, **kwargs: Any) -> dict:
         # Set the headers
         headers = {"Content-Type": "application/json"}
 
-        start_time = time.time()
-        while True:
-            try:
-                resp = requests.post(url, headers=headers, json=payload, timeout=1)
-                if resp.status_code == 200:
-                    result = resp.json()
-                    break
-                else:
-                    raise Exception("Request failed")
-            except (
-                requests.exceptions.Timeout,
-                requests.exceptions.RequestException,
-            ) as e:
-                print(e)
-                if time.time() - start_time > 20:
-                    raise Exception("Request timed out after 20 seconds")
+        resp = requests.post(
+            url, headers=headers, json=payload, timeout=request_timeout_s
+        )
+        resp.raise_for_status()
+        result = resp.json()
 
         try:
             # Delete the lock file

@@ -26,6 +26,7 @@ find_package(PCL 1.7 REQUIRED)
 add_message_files(
   FILES
   MultipleMasksWithConfidence.msg
+  SemanticObservation.msg
 )
 
 generate_messages(
@@ -61,8 +62,16 @@ add_library(plan_env
   src/frontier_map2d.cpp
   src/object_map2d.cpp
   src/value_map2d.cpp
+  src/region_graph2d.cpp
 )
 target_link_libraries(plan_env
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )
+
+if(CATKIN_ENABLE_TESTING)
+  add_executable(region_graph_dirty_fixture test/region_graph_dirty_fixture.cpp)
+  target_link_libraries(region_graph_dirty_fixture plan_env ${catkin_LIBRARIES})
+  add_executable(region_graph2d_fixture test/region_graph2d_fixture.cpp)
+  target_link_libraries(region_graph2d_fixture plan_env ${catkin_LIBRARIES})
+endif()

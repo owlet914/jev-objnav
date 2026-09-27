@@ -1,23 +1,11 @@
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
-import sys
 import numpy as np
-import torch
-import torchvision.transforms.functional as F
 
 from vlm.detector.detections import ObjectDetections
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / ".deps/GroundingDINO"))
-
 from ..server_wrapper import ServerMixin, host_model, send_request, str_to_image
-
-try:
-    from groundingdino.util.inference import load_model, predict
-except ModuleNotFoundError:
-    print(
-        "Could not import groundingdino. This is OK if you are only using the client."
-    )
 
 GROUNDING_DINO_CONFIG = str(Path(__file__).resolve().parents[2] / ".deps/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py")
 GROUNDING_DINO_WEIGHTS = "data/groundingdino_swint_ogc.pth"
@@ -30,13 +18,46 @@ class GroundingDINO:
         config_path: str = GROUNDING_DINO_CONFIG,
         weights_path: str = GROUNDING_DINO_WEIGHTS,
         caption: str = CLASSES,
-        device: torch.device = torch.device("cpu"),
+        device: Optional[Any] = None,
     ):
+        import sys
+        import threading
+        import torch
+        import torchvision.transforms.functional as transforms_functional
+        from unittest.mock import patch
+
+        dependency_path = str(
+            Path(__file__).resolve().parents[2] / ".deps/GroundingDINO"
+        )
+        if dependency_path not in sys.path:
+            sys.path.insert(0, dependency_path)
+        from groundingdino.models.GroundingDINO import ms_deform_attn
+        from groundingdino.util.inference import load_model, predict
+
+        if device is None:
+            device = torch.device("cpu")
+        elif not isinstance(device, torch.device):
+            device = torch.device(device)
         self.model = load_model(
             model_config_path=config_path, model_checkpoint_path=weights_path
         ).to(device)
         self.caption = caption
         self.device = device
+        self._torch = torch
+        self._transforms_functional = transforms_functional
+        self._patch = patch
+        self._predict = predict
+        # GroundingDINO stores transient image features on the model instance.
+        # Concurrent Flask requests can replace or delete this shared state.
+        self._predict_lock = threading.Lock()
+        self._use_pytorch_deformable_attention = (
+            self.device.type == "cuda" and not hasattr(ms_deform_attn, "_C")
+        )
+        if self._use_pytorch_deformable_attention:
+            print(
+                "GroundingDINO custom CUDA ops are unavailable; using the "
+                "built-in PyTorch deformable-attention implementation on CUDA."
+            )
 
     def predict(
         self,
@@ -58,9 +79,8 @@ class GroundingDINO:
             ObjectDetections: An instance of the ObjectDetections class containing the
                 object detections.
         """
-        import groundingdino.datasets.transforms as T
-        image_tensor = F.to_tensor(image)
-        image_transformed = F.normalize(
+        image_tensor = self._transforms_functional.to_tensor(image)
+        image_transformed = self._transforms_functional.normalize(
             image_tensor, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
 
@@ -69,16 +89,40 @@ class GroundingDINO:
         else:
             caption_to_use = caption
         print("GroundingDINO is detecting. Caption:", caption_to_use)
-        with torch.inference_mode():
-            boxes, logits, phrases = predict(
-                model=self.model,
-                image=image_transformed,
-                caption=caption_to_use,
-                box_threshold=box_threshold,
-                text_threshold=text_threshold,
-                device=str(self.device),
+        with self._predict_lock, self._torch.inference_mode():
+            # The dependency selects its pure-PyTorch implementation only when
+            # torch.cuda.is_available() is false, even though that implementation
+            # works with CUDA tensors. Scope the compatibility override tightly to
+            # this serialized model forward; model and inputs remain on CUDA.
+            availability = (
+                self._patch.object(
+                    self._torch.cuda, "is_available", return_value=False
+                )
+                if self._use_pytorch_deformable_attention
+                else None
             )
-        detections = ObjectDetections(boxes, logits, phrases, image_source=image)
+            if availability is None:
+                boxes, logits, phrases = self._predict(
+                    model=self.model,
+                    image=image_transformed,
+                    caption=caption_to_use,
+                    box_threshold=box_threshold,
+                    text_threshold=text_threshold,
+                    device=str(self.device),
+                )
+            else:
+                with availability:
+                    boxes, logits, phrases = self._predict(
+                        model=self.model,
+                        image=image_transformed,
+                        caption=caption_to_use,
+                        box_threshold=box_threshold,
+                        text_threshold=text_threshold,
+                        device=str(self.device),
+                    )
+        detections = ObjectDetections(
+            boxes, logits, phrases, image_source=image, backend="grounding_dino"
+        )
 
         # Remove detections whose class names do not exactly match the provided classes
         # classes = caption_to_use[: -len(" .")].split(" . ")
@@ -111,9 +155,16 @@ class GroundingDINOClient:
 
 if __name__ == "__main__":
     import argparse
+    import torch
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=12181)
+    parser.add_argument(
+        "--device",
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        choices=("cpu", "cuda"),
+        help="inference device; defaults to CUDA when available",
+    )
     args = parser.parse_args()
 
     print("Loading model...")
@@ -128,7 +179,7 @@ if __name__ == "__main__":
                 text_threshold=payload["text_threshold"],
             ).to_json()
 
-    gdino = GroundingDINOServer()
+    gdino = GroundingDINOServer(device=torch.device(args.device))
     print("Model loaded!")
     print(f"Hosting on port {args.port}...")
     host_model(gdino, name="gdino", port=args.port)

@@ -1,0 +1,9 @@
+name: jev-obj-bridge
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip>=24
+  - setuptools>=68
+  - wheel
+

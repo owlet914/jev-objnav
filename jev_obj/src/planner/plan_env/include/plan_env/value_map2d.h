@@ -28,6 +28,7 @@ public:
   double getValue(const Vector2i& idx);
   double getConfidence(const Vector2d& pos);
   double getConfidence(const Vector2i& idx);
+  void resetEpisode();
 
 private:
   double getFovConfidence(

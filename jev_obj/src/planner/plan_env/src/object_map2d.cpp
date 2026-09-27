@@ -12,6 +12,8 @@
 
 #include <plan_env/object_map2d.h>
 
+#include <algorithm>
+
 namespace jev_obj_planner {
 ObjectMap2D::ObjectMap2D(SDFMap2D* sdf_map, ros::NodeHandle& nh)
 {
@@ -52,6 +54,26 @@ void ObjectMap2D::setConfidenceThreshold(double val)
   ROS_INFO("Set Confidence Threshold = %f", val);
 }
 
+void ObjectMap2D::setObservationContext(
+    const std::string& episode_id, uint64_t observation_id, double timestamp_ms)
+{
+  current_episode_id_ = episode_id;
+  current_observation_id_ = observation_id;
+  current_observation_timestamp_ms_ = timestamp_ms;
+}
+
+void ObjectMap2D::resetEpisode()
+{
+  objects_.clear();
+  std::fill(object_buffer_.begin(), object_buffer_.end(), 0);
+  std::fill(object_indexs_.begin(), object_indexs_.end(), -1);
+  all_object_clouds_->clear();
+  over_depth_object_cloud_->clear();
+  current_episode_id_.clear();
+  current_observation_id_ = 0;
+  current_observation_timestamp_ms_ = 0.0;
+}
+
 /**
  * @brief Process observation clouds to adjust detection confidence
  *
@@ -65,7 +87,7 @@ void ObjectMap2D::setConfidenceThreshold(double val)
  */
 void ObjectMap2D::inputObservationObjectsCloud(
     const vector<pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>> observation_clouds,
-    const double& itm_score)
+    const double& itm_score, const vector<bool>& label_detection_valid)
 {
   // Only process observations in fusion mode with observation enabled
   if (fusion_type_ != 1 || !use_observation_)
@@ -81,6 +103,9 @@ void ObjectMap2D::inputObservationObjectsCloud(
 
     // Check overlap with each possible object classification
     for (int label = 0; label < 5; ++label) {
+      if (label >= static_cast<int>(label_detection_valid.size()) ||
+          !label_detection_valid[label])
+        continue;
       if (object.confidence_scores_[label] < 1e-3)
         continue;  // Skip labels with negligible confidence
 
@@ -239,6 +264,9 @@ void ObjectMap2D::createNewObjectCluster(
 
   // Initialize new object cluster with unique ID
   ObjectCluster obj;
+  obj.last_episode_id_ = current_episode_id_;
+  obj.last_observation_id_ = current_observation_id_;
+  obj.last_observation_timestamp_ms_ = current_observation_timestamp_ms_;
   obj.id_ = (int)objects_.size();
   obj.max_seen_count_ = 0;
   obj.good_cells_.clear();
@@ -310,6 +338,9 @@ void ObjectMap2D::mergeCellsIntoObjectCluster(const int& merged_object_id,
   const auto last_objects = objects_;
 
   ObjectCluster& merged_object = objects_[merged_object_id];
+  merged_object.last_episode_id_ = current_episode_id_;
+  merged_object.last_observation_id_ = current_observation_id_;
+  merged_object.last_observation_timestamp_ms_ = current_observation_timestamp_ms_;
   std::vector<Eigen::Vector2d> real_new_cells;
 
   // Process new spatial cells for integration
@@ -489,12 +520,55 @@ void ObjectMap2D::getObjectEvidence(vector<ObjectEvidence>& evidence) const
   evidence.clear();
   evidence.reserve(objects_.size());
   for (const auto& object : objects_) {
-    evidence.push_back({ object.id_, object.average_, object.best_label_,
-        object.confidence_scores_.empty() ? 0.0 : object.confidence_scores_[0],
-        object.observation_nums_.empty() ? 0 : object.observation_nums_[0],
-        object.observation_cloud_sums_.empty() ? 0 : object.observation_cloud_sums_[0],
-        object.confidence_scores_, object.observation_nums_,
-        object.box_min2d_, object.box_max2d_ });
+    vector<int> function_scores(object.confidence_scores_.size(), 0);
+    int computed_best_label = -1;
+    int max_function_score = 0;
+    for (size_t label = 0; label < object.confidence_scores_.size(); ++label) {
+      const int point_sum = label < object.observation_cloud_sums_.size() ?
+          object.observation_cloud_sums_[label] : 0;
+      function_scores[label] = static_cast<int>(point_sum * object.confidence_scores_[label]);
+      if (function_scores[label] > max_function_score) {
+        max_function_score = function_scores[label];
+        computed_best_label = static_cast<int>(label);
+      }
+    }
+    vector<int> good_cell_seen_counts;
+    good_cell_seen_counts.reserve(object.good_cells_.size());
+    for (const auto& cell : object.good_cells_) {
+      Eigen::Vector2i index;
+      sdf_map_->posToIndex(cell, index);
+      const int address = sdf_map_->toAddress(index);
+      const auto seen = object.seen_counts_.find(address);
+      good_cell_seen_counts.push_back(seen == object.seen_counts_.end() ? 0 : seen->second);
+    }
+    const double target_confidence = object.confidence_scores_.empty() ? 0.0 : object.confidence_scores_[0];
+    const int target_observations = object.observation_nums_.empty() ? 0 : object.observation_nums_[0];
+    evidence.push_back({ object.id_, object.average_, object.best_label_, computed_best_label,
+        target_confidence, target_observations,
+        object.clouds_.empty() || !object.clouds_[0] ? 0 :
+            static_cast<int>(object.clouds_[0]->size()),
+        object.confidence_scores_, object.observation_nums_, object.observation_cloud_sums_,
+        function_scores, object.box_min2d_, object.box_max2d_, object.cells_, object.good_cells_,
+        good_cell_seen_counts,
+        computed_best_label == 0 && target_confidence >= min_confidence_ &&
+            target_observations >= min_observation_num_,
+        target_confidence > 0.01, object.last_episode_id_, object.last_observation_id_,
+        object.last_observation_timestamp_ms_ });
+  }
+}
+
+void ObjectMap2D::getObjectCloudForEvidence(const ObjectEvidence& evidence, bool use_all_cells,
+    pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>& cloud) const
+{
+  cloud.reset(new pcl::PointCloud<pcl::PointXYZ>());
+  const auto& cells = use_all_cells ? evidence.cells : evidence.good_cells;
+  cloud->reserve(cells.size());
+  for (const auto& cell : cells) {
+    pcl::PointXYZ point;
+    point.x = cell.x();
+    point.y = cell.y();
+    point.z = 0.0;
+    cloud->push_back(point);
   }
 }
 

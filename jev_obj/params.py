@@ -31,6 +31,7 @@ RESULT_TYPES = [
     "stepout true negative",
     "stepout feasible",
     "stucking",
+    "jev decision failure",
     "[no frontier] false negative",
     "[stucking] false negative",
     "[stepout] false negative",
@@ -43,6 +44,8 @@ class FINAL_RESULT:
     STUCKING = 2
     NO_FRONTIER = 3
     REACH_OBJECT = 4
+    JEV_RETRY = 5
+    JEV_FAILURE = 6
 
 
 class EXPL_RESULT:
@@ -53,3 +56,7 @@ class EXPL_RESULT:
     NO_PASSABLE_FRONTIER = 4
     NO_COVERABLE_FRONTIER = 5
     SEARCH_EXTREME = 6
+    JEV_DECISION_RETRY = 7
+    JEV_DECISION_FAILURE = 8
+    JEV_OBSERVE_LEFT = 9
+    JEV_OBSERVE_RIGHT = 10

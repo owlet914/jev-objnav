@@ -1,0 +1,251 @@
+{
+  "model": "typesafe/jev-1.13",
+  "state": {
+    "schema_version": "jev-region-graph/1.1",
+    "representation": {
+      "kind": "region_graph",
+      "lossy": true,
+      "frame_id": "world",
+      "region_definition": "known-free connected component within a fixed 3m tile; not a semantic room"
+    },
+    "identity": {
+      "episode_id": "synthetic-example",
+      "request_id": "synthetic-example:obs-4:map-5",
+      "observation_id": 4,
+      "map_revision": 5,
+      "region_graph_revision": 2
+    },
+    "task": {
+      "target_object": "chair",
+      "room_prior": null,
+      "related_objects": []
+    },
+    "robot": {
+      "region_id": "R0001",
+      "region_assignment": "exact_free_cell",
+      "pose": {
+        "x": 0.5,
+        "y": 0.5,
+        "yaw": 0.0
+      }
+    },
+    "perception": {},
+    "jev_obj_policy": {
+      "mode": "hybrid",
+      "decision_order": [
+        "high_confidence_object",
+        "active_frontier_policy"
+      ],
+      "earliest_available_stage": "high_confidence_object",
+      "interpretation": "reference gate, not a forced answer"
+    },
+    "regions": [
+      {
+        "id": "R0001",
+        "bbox_xy": {
+          "min": [
+            0.0,
+            0.0
+          ],
+          "max": [
+            3.0,
+            3.0
+          ]
+        },
+        "anchor_xy": [
+          0.5,
+          0.5
+        ],
+        "free_area_m2": 2.0,
+        "visited": true,
+        "semantic": {
+          "valid": true,
+          "mean": -0.1,
+          "p90": 0.0,
+          "max": 0.2,
+          "valid_area_fraction": 0.5
+        },
+        "objects": [],
+        "frontiers": []
+      },
+      {
+        "id": "R0002",
+        "bbox_xy": {
+          "min": [
+            3.0,
+            0.0
+          ],
+          "max": [
+            6.0,
+            3.0
+          ]
+        },
+        "anchor_xy": [
+          3.5,
+          0.5
+        ],
+        "free_area_m2": 2.0,
+        "visited": false,
+        "semantic": {
+          "valid": false,
+          "mean": null,
+          "p90": null,
+          "max": null,
+          "valid_area_fraction": 0.0
+        },
+        "objects": [
+          {
+            "id": "object-7",
+            "target_confidence": 0.7,
+            "target_observations": 3,
+            "target_unique_viewpoints": 2,
+            "target_viewpoint_baseline_m": 0.42,
+            "updated_in_current_observation": true,
+            "confidence_context": {
+              "delta_to_gate": 0.2,
+              "tier": "supported_above_gate",
+              "percentile_among_current_objects": 1.0
+            },
+            "verification_need": {
+              "level": "routine",
+              "reasons": [
+                "open_world_identity_still_unverified"
+              ]
+            },
+            "selectable": true
+          }
+        ],
+        "frontiers": [
+          {
+            "id": "frontier-2",
+            "state": "active",
+            "semantic_valid": false,
+            "semantic_score": null,
+            "selectable": true
+          }
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "id": "E1",
+        "from": "R0001",
+        "to": "R0002",
+        "bidirectional": true,
+        "status": "verified_reachable",
+        "verified_map_revision": 5
+      }
+    ],
+    "observation_actions": [],
+    "options": [
+      {
+        "id": "explore:frontier-2-goal",
+        "action_type": "explore",
+        "exploration_kind": "frontier",
+        "target_id": "frontier-2",
+        "region_id": "R0002",
+        "distance_m": 2.5,
+        "route_region_ids": [
+          "R0001",
+          "R0002"
+        ],
+        "candidate_id": "frontier-2-goal",
+        "local_path_verified": true,
+        "repeated_selection_count": 0,
+        "source_stage": "active_frontier_policy",
+        "source_priority": 3,
+        "original_policy_stage_active": false,
+        "focus_context": {
+          "action_role": "move_to_frontier_for_new_evidence",
+          "focus_kind": "region_frontier",
+          "evidence_goal": "observe_unknown_space_near_frontier"
+        }
+      },
+      {
+        "id": "approach:object-7-goal",
+        "action_type": "approach_object",
+        "target_id": "object-7",
+        "region_id": "R0002",
+        "distance_m": 2.0,
+        "route_region_ids": [
+          "R0001",
+          "R0002"
+        ],
+        "candidate_id": "object-7-goal",
+        "local_path_verified": true,
+        "repeated_selection_count": 0,
+        "source_stage": "high_confidence_object",
+        "source_priority": 1,
+        "original_policy_stage_active": true,
+        "focus_context": {
+          "action_role": "navigate_near_hypothesis_not_success",
+          "focus_kind": "object",
+          "evidence_goal": "closer_view_for_local_confirmation",
+          "expected_resolution": "proximity_only_then_local_confirmation"
+        }
+      }
+    ],
+    "history": {},
+    "coverage": {
+      "raw_map_complete": false,
+      "high_level_evidence_complete": false,
+      "decision_evidence_complete": true,
+      "summary_contract_valid": true,
+      "regions_exported": 2,
+      "objects_exported": 1,
+      "frontiers_exported": 1,
+      "executable_candidates_exported": 2,
+      "omitted_entities": 0,
+      "regions_total": 2,
+      "objects_total": 1,
+      "frontiers_total": 1,
+      "executable_candidates_total": 2,
+      "detail_policy": "decision-local regions and entities are expanded; unrelated map detail remains local"
+    },
+    "selection_parameters": {
+      "min_target_confidence": 0.5,
+      "min_target_observations": 2,
+      "min_independent_viewpoints": 2,
+      "min_viewpoint_baseline_m": 0.35,
+      "eligibility_evaluated_locally_at_full_precision": true
+    },
+    "semantic_alignment": {
+      "object_confidence": {
+        "meaning": "fused target-detector similarity accumulated for a mapped object",
+        "calibrated_probability": false,
+        "operational_gate": 0.5,
+        "interpretation": "0.5 is a local gate, not 50 percent correctness"
+      },
+      "queried_class_comparison": {
+        "scope": "target label plus task-provided related labels only",
+        "top_rank_meaning": "best among queried labels, not open-world identity"
+      },
+      "frontier_semantics": {
+        "meaning": "relative target-related value over navigable frontier cells",
+        "calibrated_probability": false
+      }
+    },
+    "projection_summary": {
+      "view": "decision_local_region_graph",
+      "all_safe_options_retained": true,
+      "regions_total": 2,
+      "regions_detailed": 2,
+      "regions_summarized": 0,
+      "local_execution_retains_full_state": true
+    },
+    "unassigned_entities": {
+      "objects": [],
+      "frontiers": []
+    }
+  },
+  "questions": {
+    "next_goal": {
+      "type": "choice",
+      "instructions": "Choose exactly one listed option ID. Read semantic_alignment before comparing scores. Detector frame count is not independent physical viewpoint count. Approach is not success. The state is a lossy region summary; never invent coordinates, paths or a success signal.",
+      "criteria": {
+        "explore:frontier-2-goal": "Explore frontier-2 in R0002; distance_m=2.5; missing evidence is unknown.",
+        "approach:object-7-goal": "Approach observed object-7 in R0002; distance_m=2.0; not a success declaration."
+      }
+    }
+  }
+}

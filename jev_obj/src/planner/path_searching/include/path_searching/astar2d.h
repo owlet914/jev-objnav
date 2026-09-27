@@ -40,7 +40,7 @@ class Astar2D {
 public:
   Astar2D() = default;
   ~Astar2D();
-  enum { REACH_END = 1, NO_PATH = 2 };
+  enum SEARCH_RESULT { REACH_END = 1, NO_PATH = 2, TIMEOUT = 3, NODE_POOL_EXHAUSTED = 4 };
   enum SAFETY_MODE { NORMAL = 0, OPTIMISTIC = 1, EXTREME = 2 };
   void init(ros::NodeHandle& nh, const SDFMap2D::Ptr& sdf_map);
   void reset();
@@ -52,7 +52,7 @@ public:
 
   std::vector<Eigen::Vector2d> getPath();
   std::vector<Eigen::Vector2d> getVisited();
-  double getEarlyTerminateCost();
+  double getEarlyTerminateCost() const { return early_terminate_cost_; }
 
   double lambda_heu_;
 

@@ -1,0 +1,13 @@
+name: jev-obj-sim
+channels:
+  - aihabitat
+  - conda-forge
+dependencies:
+  - python=3.9
+  - habitat-sim=0.3.1
+  - withbullet
+  - numpy=1.23.5
+  - pip
+  - cmake
+  - ffmpeg
+

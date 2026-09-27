@@ -85,6 +85,9 @@ struct ObjectCluster {
   vector<double> confidence_scores_;    ///< Confidence scores per semantic class
   vector<int> observation_nums_;        ///< Number of observations per class
   vector<int> observation_cloud_sums_;  ///< Total point count per class
+  std::string last_episode_id_;          ///< Episode of the latest real detection merged here
+  uint64_t last_observation_id_ = 0;     ///< Observation of the latest real detection
+  double last_observation_timestamp_ms_ = 0.0;
 
   /**
    * @brief Constructor to initialize multi-class storage
@@ -102,14 +105,25 @@ struct ObjectCluster {
 struct ObjectEvidence {
   int id;
   Vector2d center;
-  int best_label;
+  int stored_best_label;
+  int computed_best_label;
   double target_confidence;
   int target_observations;
   int target_point_count;
   vector<double> class_confidences;
   vector<int> class_observations;
+  vector<int> class_point_sums;
+  vector<int> class_function_scores;
   Vector2d box_min;
   Vector2d box_max;
+  vector<Vector2d> cells;
+  vector<Vector2d> good_cells;
+  vector<int> good_cell_seen_counts;
+  bool high_confidence_eligible;
+  bool relaxed_eligible;
+  std::string last_episode_id;
+  uint64_t last_observation_id;
+  double last_observation_timestamp_ms;
 };
 
 class ObjectMap2D {
@@ -120,8 +134,11 @@ public:
   int searchSingleObjectCluster(const DetectedObject& detected_object);
   void inputObservationObjectsCloud(
       const vector<pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>> observation_clouds,
-      const double& itm_score);
+      const double& itm_score, const vector<bool>& label_detection_valid);
   void setConfidenceThreshold(double val);
+  void setObservationContext(const std::string& episode_id, uint64_t observation_id,
+      double timestamp_ms);
+  void resetEpisode();
 
   void getAllConfidenceObjectClouds(pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>& object_clouds);
   void getTopConfidenceObjectCloud(
@@ -130,6 +147,12 @@ public:
       vector<double>* target_confidences = nullptr,
       vector<int>* target_observations = nullptr);
   void getObjectEvidence(vector<ObjectEvidence>& evidence) const;
+  void getObjectCloudForEvidence(const ObjectEvidence& evidence, bool use_all_cells,
+      pcl::shared_ptr<pcl::PointCloud<pcl::PointXYZ>>& cloud) const;
+  double getMinConfidence() const { return min_confidence_; }
+  int getMinObservationNum() const { return min_observation_num_; }
+  int getFusionType() const { return fusion_type_; }
+  bool getUseObservation() const { return use_observation_; }
   void getObjects(
       vector<vector<Vector2d>>& clusters, vector<Vector2d>& averages, vector<int>& labels);
   void getObjectBoxes(vector<pair<Vector2d, Vector2d>>& boxes);
@@ -194,6 +217,9 @@ private:
   double min_confidence_;    ///< Minimum confidence threshold for object acceptance
   double resolution_;        ///< Grid resolution in meters
   double leaf_size_;         ///< Voxel size for point cloud downsampling
+  std::string current_episode_id_;
+  uint64_t current_observation_id_ = 0;
+  double current_observation_timestamp_ms_ = 0.0;
 
   // System integration
   SDFMap2D* sdf_map_;

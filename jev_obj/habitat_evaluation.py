@@ -30,6 +30,7 @@ import json
 import os
 import signal
 import time
+import traceback
 from copy import deepcopy
 
 # Third-party library imports
@@ -59,7 +60,7 @@ from habitat.utils.visualizations.utils import (
 )
 
 # ROS message imports
-from plan_env.msg import MultipleMasksWithConfidence
+from plan_env.msg import MultipleMasksWithConfidence, SemanticObservation
 
 # Local project imports
 from basic_utils.failure_check.count_files import count_files_in_directory
@@ -71,7 +72,7 @@ from basic_utils.record_episode.read_record import read_record
 from basic_utils.record_episode.write_record import write_record
 from habitat2ros import habitat_publisher
 from llm.answer_reader.answer_reader import read_answer
-from params import HABITAT_STATE, ROS_STATE, ACTION, RESULT_TYPES
+from params import HABITAT_STATE, ROS_STATE, ACTION, RESULT_TYPES, FINAL_RESULT
 from vlm.Labels import MP3D_ID_TO_NAME
 from vlm.utils.get_itm_message import get_itm_message_cosine
 from vlm.utils.get_object_utils import get_object
@@ -116,12 +117,32 @@ def transform_rgb_bgr(image):
 def publish_observations(event):
     """Timer callback to publish habitat observations and trigger messages"""
     global msg_observations, fusion_threshold
-    global ros_pub, trigger_pub, confidence_threshold_pub
+    global ros_pub, trigger_pub, confidence_threshold_pub, itm_score_pub
+    global observation_id, episode_key, latest_itm_state
     tmp = deepcopy(msg_observations)
-    ros_pub.habitat_publish_ros_topic(tmp)
+    ros_time = rospy.Time.now()
+    ros_pub.habitat_publish_ros_topic(tmp, ros_time=ros_time)
+    publish_semantic_observation(
+        itm_score_pub, ros_time, episode_key, observation_id, latest_itm_state
+    )
     publish_float64(confidence_threshold_pub, fusion_threshold)
     trigger = PoseStamped()
     trigger_pub.publish(trigger)
+
+
+def publish_semantic_observation(publisher, stamp, episode, obs_id, state):
+    msg = SemanticObservation()
+    msg.header.stamp = stamp
+    msg.header.frame_id = "world"
+    msg.episode_id = episode
+    msg.observation_id = obs_id
+    msg.query_text = str(state.get("query_text", ""))
+    msg.score_type = str(state.get("score_type", "blip2_itc_cosine_similarity"))
+    msg.raw_score = float(state.get("raw_score", 0.0))
+    msg.valid = bool(state.get("valid", False))
+    msg.fallback = bool(state.get("fallback", False))
+    msg.backend = str(state.get("backend", "not_observed_yet"))
+    publisher.publish(msg)
 
 
 def ros_action_callback(msg):
@@ -164,7 +185,8 @@ def _parse_dataset_arg():
 def main(cfg: DictConfig) -> None:
     global msg_observations, global_action, ros_state, fusion_threshold
     global ros_pub, trigger_pub, obj_point_cloud_pub, confidence_threshold_pub
-    global final_state, expl_result
+    global itm_score_pub
+    global final_state, expl_result, observation_id, episode_key, latest_itm_state
 
     # Only MP3D needs this legacy category translation. OVON goal categories
     # are open-vocabulary strings and must reach the detector/ITM unchanged.
@@ -207,6 +229,9 @@ def main(cfg: DictConfig) -> None:
     # Single test parameters
     env_num_once = cfg.test_epi_num  # Which episode to test for single run
     flag_once = env_num_once != -1  # Whether to run single test
+    eval_episode_limit = int(getattr(cfg, "eval_episode_limit", -1))
+    if eval_episode_limit == 0 or eval_episode_limit < -1:
+        raise ValueError("eval_episode_limit must be -1 or a positive integer")
 
     # Create directories if they don't exist
     os.makedirs(os.path.dirname(llm_answer_path), exist_ok=True)
@@ -236,7 +261,15 @@ def main(cfg: DictConfig) -> None:
         )
 
     env = habitat.Env(cfg)
+    audit = None
+    if os.environ.get("JEV_REGION_RUN_DIR"):
+        from region_evaluation_audit import RegionEvaluationAudit
+        audit = RegionEvaluationAudit(cfg, env)
     print("Environment creation successful")
+    turn_angle_deg = float(cfg.habitat.simulator.turn_angle)
+    if not np.isfinite(turn_angle_deg) or turn_angle_deg <= 0.0 or turn_angle_deg > 180.0:
+        raise ValueError(f"Invalid Habitat turn_angle: {turn_angle_deg}")
+    rospy.set_param("/jev_obj/jev/observation_turn_angle_deg", turn_angle_deg)
     number_of_episodes = env.number_of_episodes
 
     # Read previous records and set initial values
@@ -253,7 +286,11 @@ def main(cfg: DictConfig) -> None:
     if num_total >= number_of_episodes:
         raise ValueError("Already finished all episodes.")
 
-    pbar = tqdm.tqdm(total=env.number_of_episodes)
+    remaining_episodes = number_of_episodes - num_total
+    episodes_to_run = 1 if flag_once else remaining_episodes
+    if not flag_once and eval_episode_limit > 0:
+        episodes_to_run = min(episodes_to_run, eval_episode_limit)
+    pbar = tqdm.tqdm(total=episodes_to_run)
 
     env_count = num_total if not flag_once else env_num_once
     while env_count:
@@ -272,7 +309,9 @@ def main(cfg: DictConfig) -> None:
     rospy.Subscriber("/ros/expl_result", Int32, ros_expl_result_callback, queue_size=10)
     state_pub = rospy.Publisher("/habitat/state", Int32, queue_size=10)
     trigger_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
-    itm_score_pub = rospy.Publisher("/blip2/cosine_score", Float64, queue_size=10)
+    itm_score_pub = rospy.Publisher(
+        "/blip2/semantic_observation", SemanticObservation, queue_size=10
+    )
     confidence_threshold_pub = rospy.Publisher(
         "/detector/confidence_threshold", Float64, queue_size=10
     )
@@ -282,9 +321,9 @@ def main(cfg: DictConfig) -> None:
     progress_pub = rospy.Publisher("/habitat/progress", Int32MultiArray, queue_size=10)
     record_pub = rospy.Publisher("/habitat/record", Float32MultiArray, queue_size=10)
 
-    for epi in range(number_of_episodes - num_total):
+    for epi in range(episodes_to_run):
         # Publish progress information
-        publish_int32_array(progress_pub, [num_total, number_of_episodes])
+        publish_int32_array(progress_pub, [epi, episodes_to_run])
 
         if flag_once:
             while env_count:
@@ -295,8 +334,11 @@ def main(cfg: DictConfig) -> None:
         pass_object = 0.0
         near_object = 0.0
         global_action = None
+        final_state = 0
+        expl_result = 0
         cld_with_score_msg = MultipleMasksWithConfidence()
         count_steps = 0
+        observation_id = 0
 
         camera_pitch = 0.0
         observations = env.reset()
@@ -322,11 +364,34 @@ def main(cfg: DictConfig) -> None:
             "ovon_episode_id", env.current_episode.episode_id
         )
         episode_key = f"{os.path.basename(env.current_episode.scene_id)}:{source_episode_id}"
+        if audit:
+            audit.check_bridge()
+            audit.event("episode_start",episode_id=episode_key,target=label,episode_index=env_num_once if flag_once else num_total)
+        rospy.set_param("/jev_obj/jev/accepted_request_id", "")
+        rospy.set_param("/jev_obj/jev/last_error", "")
+        latest_itm_state = {
+            "raw_score": 0.0,
+            "valid": False,
+            "fallback": False,
+            "backend": "not_observed_yet",
+            "query_text": "",
+            "score_type": "blip2_itc_cosine_similarity",
+        }
         rospy.set_param("/jev_obj/jev/episode_id", episode_key)
         rospy.set_param("/jev_obj/jev/target_object", label)
         rospy.set_param("/jev_obj/jev/room_prior", room)
         rospy.set_param("/jev_obj/jev/related_objects", [str(item) for item in llm_answer])
         rospy.set_param("/jev_obj/jev/latest_itm_score", -1.0)
+        rospy.set_param("/jev_obj/jev/perception/itm_available", False)
+        rospy.set_param("/jev_obj/jev/perception/itm_fallback", False)
+        rospy.set_param("/jev_obj/jev/perception/itm_backend", "not_observed_yet")
+        rospy.set_param("/jev_obj/jev/perception/object_detection_available", False)
+        rospy.set_param("/jev_obj/jev/perception/object_detection_fallback", False)
+        rospy.set_param("/jev_obj/jev/perception/object_detection_backends", [])
+        rospy.set_param("/jev_obj/jev/perception/object_detection_count", 0)
+        rospy.set_param("/jev_obj/jev/navigation/step_count", 0)
+        rospy.set_param("/jev_obj/jev/navigation/latest_collision", False)
+        rospy.set_param("/jev_obj/jev/navigation/collision_count", 0)
         rospy.set_param(
             "/jev_obj/jev/target_subcategories",
             [str(item) for item in episode_info.get("children_object_categories", [])],
@@ -406,26 +471,99 @@ def main(cfg: DictConfig) -> None:
             # Notify ROS system that action execution is starting
             publish_int32(state_pub, HABITAT_STATE.ACTION_EXEC)
 
+            accepted_id = rospy.get_param("/jev_obj/jev/accepted_request_id", "")
+            if audit:
+                audit.event("action_dispatch",episode_id=episode_key,observation_id=observation_id,request_id=accepted_id,
+                    candidate_id=rospy.get_param("/jev_obj/jev/accepted_candidate_id", ""),
+                    action_origin=rospy.get_param("/jev_obj/jev/navigation/last_action_origin", "unknown"),
+                    mode=rospy.get_param("/jev_obj/jev/accepted_mode", ""),action=int(action))
             observations = env.step(action)
+            observation_id += 1
 
             # Calculate ITM cosine similarity score
-            cosine = get_itm_message_cosine(observations["rgb"], label, room)
+            cosine, itm_status = get_itm_message_cosine(
+                observations["rgb"], label, room, return_metadata=True
+            )
             print(f"Target related room: {room}")
-            print(f"ITM cosine similarity: {cosine:.3f}")
+            print(
+                f"ITM cosine similarity: {cosine:.3f}; "
+                f"available={itm_status['available']}; fallback={itm_status['fallback']}"
+            )
 
-            publish_float64(itm_score_pub, cosine)
-            rospy.set_param("/jev_obj/jev/latest_itm_score", float(cosine))
+            rospy.set_param(
+                "/jev_obj/jev/perception/itm_available", bool(itm_status["available"])
+            )
+            rospy.set_param(
+                "/jev_obj/jev/perception/itm_fallback", bool(itm_status["fallback"])
+            )
+            rospy.set_param(
+                "/jev_obj/jev/perception/itm_backend", str(itm_status["backend"])
+            )
+            latest_itm_state = {
+                **itm_status,
+                "raw_score": float(cosine),
+                "valid": bool(itm_status["available"] and not itm_status["fallback"]),
+            }
+            rospy.set_param("/jev_obj/jev/perception/itm_observation_id", int(observation_id))
+            rospy.set_param("/jev_obj/jev/perception/itm_query_text", str(itm_status["query_text"]))
+            rospy.set_param("/jev_obj/jev/perception/itm_score_type", str(itm_status["score_type"]))
+            if latest_itm_state["valid"]:
+                rospy.set_param("/jev_obj/jev/latest_itm_score", float(cosine))
+            else:
+                rospy.set_param("/jev_obj/jev/latest_itm_score", -1.0)
 
             # Detect objects in the current observation
-            observations["rgb"], score_list, object_masks_list, label_list = get_object(
-                label, observations["rgb"], detector_cfg, llm_answer
+            (
+                observations["rgb"],
+                score_list,
+                object_masks_list,
+                label_list,
+                detection_status,
+            ) = get_object(
+                label, observations["rgb"], detector_cfg, llm_answer,
+                return_metadata=True,
             )
+            rospy.set_param(
+                "/jev_obj/jev/perception/object_detection_available",
+                bool(detection_status["target_available"]),
+            )
+            rospy.set_param(
+                "/jev_obj/jev/perception/object_detection_fallback",
+                bool(detection_status["fallback"]),
+            )
+            rospy.set_param(
+                "/jev_obj/jev/perception/object_detection_backends",
+                [str(item["backend"]) for item in detection_status["detectors"]],
+            )
+            rospy.set_param(
+                "/jev_obj/jev/perception/object_detection_count",
+                int(sum(item["raw_detection_count"] for item in detection_status["detectors"])),
+            )
+            rospy.set_param("/jev_obj/jev/perception/detection_observation_id", int(observation_id))
+            rospy.set_param("/jev_obj/jev/perception/target_detection_available", bool(detection_status["target_available"]))
+            rospy.set_param("/jev_obj/jev/perception/related_detection_available", bool(detection_status["related_available"]))
+            rospy.set_param("/jev_obj/jev/perception/target_match_count", int(detection_status["target_match_count"]))
+            rospy.set_param("/jev_obj/jev/perception/related_match_count", int(detection_status["related_match_count"]))
+            rospy.set_param("/jev_obj/jev/perception/valid_mask_count", int(detection_status["valid_mask_count"]))
+            rospy.set_param(
+                "/jev_obj/jev/perception/detector_status_json",
+                json.dumps(detection_status["detectors"], ensure_ascii=False),
+            )
+
+            if audit and (not itm_status["available"] or itm_status["fallback"] or
+                    not detection_status["target_available"] or not detection_status["related_available"] or detection_status["fallback"]):
+                audit.result(episode_id=episode_key,target=label,steps=count_steps,success=0,spl=0.0,technical_failure=True,reason="PERCEPTION_UNAVAILABLE",completed=False)
+                raise RuntimeError("PERCEPTION_UNAVAILABLE: stop batch")
 
             # Publish habitat observations to ROS
             observations["camera_pitch"] = camera_pitch
             msg_observations = deepcopy(observations)
             del observations["camera_pitch"]
-            ros_pub.habitat_publish_ros_topic(msg_observations)
+            observation_stamp = rospy.Time.now()
+            ros_pub.habitat_publish_ros_topic(msg_observations, ros_time=observation_stamp)
+            publish_semantic_observation(
+                itm_score_pub, observation_stamp, episode_key, observation_id, latest_itm_state
+            )
 
             # Generate and publish object point clouds
             obj_point_cloud_list = get_object_point_cloud(
@@ -436,10 +574,37 @@ def main(cfg: DictConfig) -> None:
             cld_with_score_msg.point_clouds = obj_point_cloud_list
             cld_with_score_msg.confidence_scores = score_list
             cld_with_score_msg.label_indices = label_list
+            cld_with_score_msg.header.stamp = observation_stamp
+            cld_with_score_msg.header.frame_id = "world"
+            cld_with_score_msg.episode_id = episode_key
+            cld_with_score_msg.observation_id = observation_id
+            cld_with_score_msg.detector_names = [str(item["name"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.detector_backends = [str(item["backend"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.detector_available = [bool(item["available"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.detector_fallback = [bool(item["fallback"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.detector_target_coverage = [bool(item["target_coverage"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.detector_requested_classes = [json.dumps(item["requested_classes"], ensure_ascii=False) for item in detection_status["detectors"]]
+            cld_with_score_msg.raw_detection_counts = [int(item["raw_detection_count"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.target_match_counts = [int(item["target_match_count"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.related_match_counts = [int(item["related_match_count"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.valid_mask_counts = [int(item["valid_mask_count"]) for item in detection_status["detectors"]]
+            cld_with_score_msg.label_detection_valid = [
+                bool(item) for item in detection_status["label_detection_valid"]
+            ]
             cld_with_score_pub.publish(cld_with_score_msg)
 
             # Generate video frame
             info = env.get_metrics()
+            collision_metrics = info.get("collisions", {})
+            rospy.set_param("/jev_obj/jev/navigation/step_count", int(count_steps))
+            rospy.set_param(
+                "/jev_obj/jev/navigation/latest_collision",
+                bool(collision_metrics.get("is_collision", False)),
+            )
+            rospy.set_param(
+                "/jev_obj/jev/navigation/collision_count",
+                int(collision_metrics.get("count", 0)),
+            )
             if need_video:
                 frame = observations_to_image(observations, info)
                 info.pop("top_down_map")
@@ -451,6 +616,9 @@ def main(cfg: DictConfig) -> None:
             if distance_to_goal <= success_distance and pass_object == 0:
                 pass_object = 1
 
+            if audit:
+                audit.event("action_completion",episode_id=episode_key,request_id=accepted_id,
+                    next_observation_id=observation_id,steps=count_steps,collision=bool(collision_metrics.get("is_collision",False)))
             # Notify ROS system that action execution is complete
             publish_int32(state_pub, HABITAT_STATE.ACTION_FINISH)
             rate.sleep()
@@ -471,7 +639,12 @@ def main(cfg: DictConfig) -> None:
             near_object = 1
 
         # Determine episode result
-        if success == 1:
+        if final_state == FINAL_RESULT.JEV_FAILURE:
+            result_text = "jev decision failure"
+            success = 0
+            spl = 0.0
+            soft_spl = 0.0
+        elif success == 1:
             num_success += 1
             result_text = "success"
         else:
@@ -529,6 +702,12 @@ def main(cfg: DictConfig) -> None:
         table2.add_row(["Total Soft SPL", f"{soft_spl_all:.2f}"])
         table2.add_row(["Total Distance to Goal", f"{distance_to_goal_all:.4f}"])
 
+        if audit:
+            technical_failure = final_state == FINAL_RESULT.JEV_FAILURE
+            audit.result(episode_id=episode_key,target=label,steps=count_steps,success=float(success),spl=float(spl),
+                reason=rospy.get_param("/jev_obj/jev/last_error", "") or result_text,technical_failure=technical_failure,completed=True)
+            if technical_failure:
+                raise RuntimeError("JEV_TECHNICAL_FAILURE: stop batch after recording failure")
         if flag_once:
             break
 
@@ -574,8 +753,9 @@ def main(cfg: DictConfig) -> None:
         publish_float32_array(record_pub, record_data)
 
         pbar.update()
-        env.current_episode = next(env.episode_iterator)
-        rospy.sleep(0.1)  # wait a moment
+        if num_total < number_of_episodes:
+            env.current_episode = next(env.episode_iterator)
+            rospy.sleep(0.1)  # wait a moment
 
     env.close()
     pbar.close()
@@ -594,5 +774,6 @@ if __name__ == "__main__":
         main(cfg)
     except Exception as e:
         print(f"Unexpected error occurred: {e}")
+        traceback.print_exc()
         rospy.signal_shutdown("Shutdown due to error")
-        os._exit(1)
+        raise

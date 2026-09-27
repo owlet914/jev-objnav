@@ -79,14 +79,15 @@ class ROSPublisher:
         )
         self.pose_pub.publish(sensor_pose)
 
-    def habitat_publish_ros_topic(self, observations):
+    def habitat_publish_ros_topic(self, observations, ros_time=None):
         depth_image = observations["depth"]
         rgb_image = observations["rgb"]
         gps = observations["gps"]
         compass = observations["compass"]
         camera_pitch = observations["camera_pitch"]
-        ros_time = rospy.Time.now()
+        ros_time = rospy.Time.now() if ros_time is None else ros_time
         self.publish_depth(ros_time, depth_image)
         self.publish_camera_odom(ros_time, gps, compass, camera_pitch)
         self.publish_rgb(ros_time, rgb_image)
         self.publish_robot_odom(ros_time, gps, compass)
+        return ros_time

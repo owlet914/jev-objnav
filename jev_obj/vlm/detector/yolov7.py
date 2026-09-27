@@ -1,38 +1,40 @@
-import sys
 from pathlib import Path
 from typing import List, Optional
 
 import cv2
 import numpy as np
-import torch
 
 from vlm.coco_classes import COCO_CLASSES
 from vlm.detector.detections import ObjectDetections
 
 from ..server_wrapper import ServerMixin, host_model, send_request, str_to_image
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / ".deps/yolov7"))
-try:
-    from models.experimental import attempt_load  # noqa: E402
-    from utils.datasets import letterbox  # noqa: E402
-    from utils.general import (  # noqa: E402
-        check_img_size,
-        non_max_suppression,
-        scale_coords,
-    )
-    from utils.torch_utils import TracedModel  # noqa: E402
-
-
-except Exception:
-    print("Could not import yolov7. This is OK if you are only using the client.")
-sys.path.pop(0)
-
-
 class YOLOv7:
     def __init__(
         self, weights: str, image_size: int = 640, half_precision: bool = True
     ):
         """Loads the model and saves it to a field."""
+        import sys
+        import torch
+
+        dependency_path = str(Path(__file__).resolve().parents[2] / ".deps/yolov7")
+        sys.path.insert(0, dependency_path)
+        try:
+            from models.experimental import attempt_load
+            from utils.datasets import letterbox
+            from utils.general import (
+                check_img_size,
+                non_max_suppression,
+                scale_coords,
+            )
+            from utils.torch_utils import TracedModel
+        finally:
+            sys.path.pop(0)
+
+        self._torch = torch
+        self._letterbox = letterbox
+        self._non_max_suppression = non_max_suppression
+        self._scale_coords = scale_coords
         self.device = (
             torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         )
@@ -80,22 +82,22 @@ class YOLOv7:
             (self.image_size, int(self.image_size * 0.7)),
             interpolation=cv2.INTER_AREA,
         )
-        img = letterbox(img, new_shape=self.image_size)[0]
+        img = self._letterbox(img, new_shape=self.image_size)[0]
         img = img.transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
 
-        img = torch.from_numpy(img).to(self.device)
+        img = self._torch.from_numpy(img).to(self.device)
         img = img.half() if self.half_precision else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
 
         # Inference
-        with torch.inference_mode():  # Calculating gradients causes a GPU memory leak
+        with self._torch.inference_mode():  # Calculating gradients causes a GPU memory leak
             pred = self.model(img)[0]
 
         # Apply NMS
-        pred = non_max_suppression(
+        pred = self._non_max_suppression(
             pred,
             conf_thres,
             iou_thres,
@@ -103,7 +105,9 @@ class YOLOv7:
             agnostic=agnostic_nms,
         )[0]
         # Rescale boxes from img_size to im0 size
-        pred[:, :4] = scale_coords(img.shape[2:], pred[:, :4], orig_shape).round()
+        pred[:, :4] = self._scale_coords(
+            img.shape[2:], pred[:, :4], orig_shape
+        ).round()
         pred[:, 0] /= orig_shape[1]
         pred[:, 1] /= orig_shape[0]
         pred[:, 2] /= orig_shape[1]
@@ -112,7 +116,7 @@ class YOLOv7:
         logits = pred[:, 4]
         phrases = [COCO_CLASSES[int(i)] for i in pred[:, 5]]
         detections = ObjectDetections(
-            boxes, logits, phrases, image_source=image, fmt="xyxy"
+            boxes, logits, phrases, image_source=image, fmt="xyxy", backend="yolov7"
         )
         return detections
 

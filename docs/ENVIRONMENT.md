@@ -1,6 +1,8 @@
-# Jev Obj 环境配置与运行
+# Jev Obj 环境配置与运行（旧版）
 
-本文从**接口检查 → ROS 编译 → Habitat 单步 → Jev + 导航**逐级验证。以下命令默认在仓库根目录执行；标注 `cd jev_obj` 的命令需切换到该目录。先前版本在 Ubuntu 20.04 / ROS Noetic 上完成过单次 pilot；本次更名后的 `jev_obj/` 已重新编译并通过接口测试，**尚未重新运行完整 episode**。其它平台是可选配置路径，必须逐级验证，不能把示例检查当成完整导航成功。
+> 当前公开配置与启动流程已经迁移到 [SETUP.md](SETUP.md)。本文件仅保留早期、多机型部署背景；请以 `SETUP.md`、`.env.example`、`environment.yml` 和 `jev_obj/environment.sim.yml` 为准。
+
+本文保留早期的多机型背景资料。当前 `jev_obj/` 已完成真实 Jev 闭环测评并整理了五条成功轨迹；可复现配置、真实感知服务要求和评测入口统一以 [SETUP.md](SETUP.md) 为准。其它平台仍需逐级验证，不能把离线接口检查当成完整导航成功。
 
 ## 1. 按机器选择路径
 

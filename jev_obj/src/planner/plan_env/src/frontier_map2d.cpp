@@ -12,6 +12,7 @@
  */
 #include <plan_env/frontier_map2d.h>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace jev_obj_planner {
 FrontierMap2D::FrontierMap2D(const SDFMap2D::Ptr& sdf_map, ros::NodeHandle& nh)
@@ -49,6 +50,7 @@ void FrontierMap2D::searchFrontiers()
   // Determine spatial bounds of recently updated map regions
   Vector2d update_min, update_max;
   sdf_map_->getLocalUpdatedBox(update_min, update_max);
+  vector<Frontier2D> retired_frontiers;
 
   // Lambda function for efficient frontier removal and flag reset
   auto resetFlag = [&](list<Frontier2D>::iterator& iter, list<Frontier2D>& frontiers) {
@@ -58,6 +60,7 @@ void FrontierMap2D::searchFrontiers()
       sdf_map_->posToIndex(cell, idx);
       frontier_flag_[toAdr(idx)] = NONE;
     }
+    retired_frontiers.push_back(*iter);
     // Remove frontier from container and return updated iterator
     iter = frontiers.erase(iter);
   };
@@ -112,12 +115,37 @@ void FrontierMap2D::searchFrontiers()
   // Apply PCA-based subdivision to large frontier clusters
   splitLargeFrontiers(candidate_frontiers_);
 
-  // Integrate newly discovered frontiers into active frontier set
-  for (auto& tmp_ftr : candidate_frontiers_) frontiers_.insert(frontiers_.end(), tmp_ftr);
-
-  // Reassign unique identifiers to maintain frontier tracking consistency
-  int idx = 0;
-  for (auto& ft : frontiers_) ft.id_ = idx++;
+  std::unordered_map<int, int> child_counts;
+  for (auto& candidate : candidate_frontiers_) {
+    candidate.parent_ids_.clear();
+    for (const auto& retired : retired_frontiers) {
+      if (haveOverlap(candidate.box_min_, candidate.box_max_, retired.box_min_, retired.box_max_)) {
+        candidate.parent_ids_.push_back(retired.id_);
+        ++child_counts[retired.id_];
+      }
+    }
+    std::sort(candidate.parent_ids_.begin(), candidate.parent_ids_.end());
+    candidate.parent_ids_.erase(
+        std::unique(candidate.parent_ids_.begin(), candidate.parent_ids_.end()),
+        candidate.parent_ids_.end());
+  }
+  std::unordered_set<int> reused_parent_ids;
+  // Preserve an ID for a one-to-one continuation or the primary child of a split. Other
+  // children/merges receive new IDs and retain explicit parent lineage.
+  for (auto& tmp_ftr : candidate_frontiers_) {
+    if (tmp_ftr.parent_ids_.size() == 1 &&
+        reused_parent_ids.insert(tmp_ftr.parent_ids_.front()).second) {
+      tmp_ftr.id_ = tmp_ftr.parent_ids_.front();
+      tmp_ftr.lineage_event_ = child_counts[tmp_ftr.id_] > 1 ? "split_primary" : "continued";
+    }
+    else {
+      tmp_ftr.id_ = next_frontier_id_++;
+      tmp_ftr.lineage_event_ = tmp_ftr.parent_ids_.empty() ? "new" :
+          tmp_ftr.parent_ids_.size() > 1 ? "merge" : "split_child";
+    }
+    tmp_ftr.dormancy_reason_.clear();
+    frontiers_.insert(frontiers_.end(), tmp_ftr);
+  }
 }
 
 void FrontierMap2D::expandFrontier(const Eigen::Vector2i& first)
@@ -306,6 +334,7 @@ bool FrontierMap2D::dormantSeenFrontiers(Vector2d sensor_pos, double sensor_yaw)
 
     // Move frontier to dormant state if visible or too small for exploration
     if (visib || too_small) {
+      it->dormancy_reason_ = too_small ? "connected_unknown_below_threshold" : "visible_from_sensor";
       dormant_frontiers_.push_back(*it);
 
       // Update frontier flags to dormant state for all constituent cells
@@ -341,6 +370,10 @@ bool FrontierMap2D::isFrontierChanged(const Frontier2D& ft)
 
 void FrontierMap2D::computeFrontierInfo(Frontier2D& ftr)
 {
+  ftr.id_ = -1;
+  ftr.dormancy_reason_.clear();
+  ftr.parent_ids_.clear();
+  ftr.lineage_event_ = "unassigned";
   // Initialize centroid accumulator and bounding box with first cell
   ftr.average_.setZero();
   ftr.box_max_ = ftr.cells_.front();
@@ -503,27 +536,45 @@ void FrontierMap2D::setForceDormantFrontier(const Vector2d& frontier_center)
   }
 }
 
-void FrontierMap2D::getFrontiers(
-    vector<vector<Eigen::Vector2d>>& clusters, vector<Vector2d>& averages)
+void FrontierMap2D::getFrontiers(vector<vector<Eigen::Vector2d>>& clusters,
+    vector<Vector2d>& averages, vector<int>* ids, vector<std::string>* reasons,
+    vector<vector<int>>* parent_ids, vector<std::string>* lineage_events)
 {
   clusters.clear();
   averages.clear();
+  if (ids) ids->clear();
+  if (reasons) reasons->clear();
+  if (parent_ids) parent_ids->clear();
+  if (lineage_events) lineage_events->clear();
 
   // Extract cluster data from all active frontiers
   for (auto frontier : frontiers_) {
     clusters.push_back(frontier.cells_);
     averages.push_back(frontier.average_);
+    if (ids) ids->push_back(frontier.id_);
+    if (reasons) reasons->push_back(frontier.dormancy_reason_);
+    if (parent_ids) parent_ids->push_back(frontier.parent_ids_);
+    if (lineage_events) lineage_events->push_back(frontier.lineage_event_);
   }
 }
 
-void FrontierMap2D::getDormantFrontiers(
-    vector<vector<Eigen::Vector2d>>& clusters, vector<Vector2d>& averages)
+void FrontierMap2D::getDormantFrontiers(vector<vector<Eigen::Vector2d>>& clusters,
+    vector<Vector2d>& averages, vector<int>* ids, vector<std::string>* reasons,
+    vector<vector<int>>* parent_ids, vector<std::string>* lineage_events)
 {
   clusters.clear();
   averages.clear();
+  if (ids) ids->clear();
+  if (reasons) reasons->clear();
+  if (parent_ids) parent_ids->clear();
+  if (lineage_events) lineage_events->clear();
   for (auto frontier : dormant_frontiers_) {
     clusters.push_back(frontier.cells_);
     averages.push_back(frontier.average_);
+    if (ids) ids->push_back(frontier.id_);
+    if (reasons) reasons->push_back(frontier.dormancy_reason_);
+    if (parent_ids) parent_ids->push_back(frontier.parent_ids_);
+    if (lineage_events) lineage_events->push_back(frontier.lineage_event_);
   }
 }
 
